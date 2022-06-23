@@ -3,13 +3,15 @@ const fs = require("fs");
 
 function modify(data) {
   //console.log(components);
-  console.log(imports);
+  //console.log(imports);
   // console.log(data);
 
-  let x = "", y = "";
+  let x = "";
+  let y = "";
 
   let lazyLoadSyntax = `const ${x} = lazy(() => import(${y}));`;
-  let ok = 0;
+  let isSuspense = 0;
+  let isLazy = 0;
   let index = 0;
 
   let add = [];
@@ -22,30 +24,43 @@ function modify(data) {
         lazyLoadSyntax = `const ${x} = lazy(() => import(${y}));`;
         add.push(lazyLoadSyntax);
         data = data.replace(importLine.import, "");
-        //console.log(data);
       }
     }
   }
 
   for (let importLine of imports) {
-      if(data.search(importLine.import) == -1)    continue;
+    let str = importLine.namedExps;
 
-      if(index < data.search(importLine.import)+importLine.import.length+1)
-      index = data.search(importLine.import)+importLine.import.length+1;
-      //console.log(data);
+    if (str != "null") {
+      let arr = JSON.parse(str);
+      console.log(arr);
+
+      for (let e of arr) {
+        if (e.namedExp == "Suspense") isSuspense = 1;
+        if (e.namedExp == "lazy") isLazy = 1;
+      }
+
+      console.log();
+    }
+    if (data.search(importLine.import) == -1) continue;
+
+    if (index < data.search(importLine.import) + importLine.import.length + 1)
+      index = data.search(importLine.import) + importLine.import.length + 1;
   }
 
-  let result = add.join('\r\n');
-  data = data.slice(0, index) + '\r\n' + result + '\r\n' + data.slice(index);
+  let result = add.join("\r\n");
+  data = data.slice(0, index) + "\r\n" + result + "\r\n" + data.slice(index);
 
-  if (!ok) data = "import { Suspense, lazy } from 'react';\r\n" + data;
+  if (!isSuspense && !isLazy)
+    data = "import { Suspense, lazy } from 'react';\r\n" + data;
+  else if (!isSuspense) data = "import { Suspense } from 'react';\r\n" + data;
+  else if (!isLazy) data = "import { lazy } from 'react';\r\n" + data;
 
   fs.writeFile("./scripts/temp.js", data, (err) => {
     if (err) {
       console.error(err);
       return;
     }
-    //console.log("file written successfully");
   });
 }
 

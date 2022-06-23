@@ -1,5 +1,7 @@
-import { Suspense, lazy } from 'react';
+import { lazy } from 'react';
+
 import { makeStyles } from "@material-ui/core";
+import { Suspense } from 'react';
 
 import "./App.css";
 import { BrowserRouter, Route } from "react-router-dom";
