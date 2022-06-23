@@ -30,7 +30,7 @@ function getImports(text) {
     match = reg.exec(text);
     if (match) {
       let module = match[3].match(/('|")(.*)('|")/gm)[0];
-      let stmt = match[0].trim().replaceAll("\n", "");
+      let stmt = match[0];
 
       let namedExps = new RegExp("{((.|\r\n|\\s)*?)}", "gm");
       namedExps = namedExps.exec(stmt);
