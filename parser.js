@@ -1,6 +1,5 @@
-
 export function removeComments(data) {
-  let regex = /\/\/.*/g; //RegEx for removing single line comments
+  let regex = /\/\/.*/g; //RegEx for removing single line comments.
   data = data.replace(regex, "");
 
   regex = /\/\*(\s|.|\r\n)*?\*\//gm; //RegEx for removing multi line comments.
@@ -12,70 +11,66 @@ export function removeComments(data) {
 export function getComponents(data) {
   var components = [];
 
-    data = removeComments(data);
+  data = removeComments(data);
 
-    let possibleRoutes = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
-    //possibleRoutes holds all the statements that start with a Route tag.
+  let possibleRoutes = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
+  //possibleRoutes holds all the statements that start with a Route tag.
 
-    for (let currentRoute of possibleRoutes) {
-      if (!/component/.test(currentRoute) && !/element/.test(currentRoute)) {
-        //If the currentRoute does not contain any component or element keyword, it is of the following type:
-        //    <Route path={`${match.path}/:topicId`}>
-        //        <Topic />
-        //    </Route>
+  for (let currentRoute of possibleRoutes) {
 
-        let possibleComponent = currentRoute.match(/>((\s|.|\r\n)*?)?\/>/gm); //Refining our component to get its name by removing the route tag
-        if (!possibleComponent) continue; //Checking if the component is still possible in current route
+    
+    if (!/component/.test(currentRoute) && !/element/.test(currentRoute)) {
+      //If the currentRoute does not contain any component/element keyword.
 
-        possibleComponent =
-          possibleComponent[0].match(/<((\s|.|\r\n)*?)?\/>/gm); //Refining our component to get its name by removing the route tag
-        if (!possibleComponent) continue;
+      let possibleComponent = currentRoute.match(/>((\s|.|\r\n)*?)?\/>/gm); //Refine route statement to get possible component name by removing the route tag.
+      if (!possibleComponent) continue; //If no component is present in current route statement, continue to next route statement.
 
-        possibleComponent = possibleComponent[0].match(/\w(.)*/gm); //Refining our component to get its name by removing the route tag
-        if (!possibleComponent) continue;
+      possibleComponent = possibleComponent[0].match(/<((\s|.|\r\n)*?)?\/>/gm); //Remove any component path details, if present.
+      if (!possibleComponent) continue;
 
-        possibleComponent = possibleComponent[0].match(/(.)*\w/gm); //Refining our component to get its name by removing the route tag
-        if (!possibleComponent) continue;
+      possibleComponent = possibleComponent[0].match(/\w(.)*/gm); //Remove extra characters that are present at the start of component name.
+      if (!possibleComponent) continue;
 
-        components.push(possibleComponent[0].toString()); //Finally pushing component in components array
-        continue;
-      }
+      possibleComponent = possibleComponent[0].match(/(.)*\w/gm); //Remove extra characters that are present at the end of component name.
+      if (!possibleComponent) continue;
 
-      let possibleComponent = currentRoute.match(/component((\s|.|\r\n)*?)?}/gm);
-
-      if (possibleComponent) {
-        //If the currentRoute contains component keyword, it is of the following type:
-        //    <Route path="/" component={Homepage} exact />
-
-        possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm);
-        if (!possibleComponent) continue;
-
-        possibleComponent = possibleComponent[0].match(/\w(.)*/gm);
-        if (!possibleComponent) continue;
-
-        possibleComponent = possibleComponent[0].match(/(.)*\w/gm);
-        if (!possibleComponent) continue;
-
-        components.push(possibleComponent[0].toString());
-      } else {
-        //If the currentRoute contains element keyword, it is of the following type:
-        //    <Route path="/" element = {<Homepage />} exact />
-
-        possibleComponent = currentRoute.match(/element((\s|.|\r\n)*)/gm);
-        if (!possibleComponent) continue;
-
-        possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm);
-        if (!possibleComponent) continue;
-
-        possibleComponent = possibleComponent[0].match(/\w(.)*/gm);
-        if (!possibleComponent) continue;
-
-        possibleComponent = possibleComponent[0].match(/(.)*\w/gm);
-        if (!possibleComponent) continue;
-
-        components.push(possibleComponent[0].toString());
-      }
+      components.push(possibleComponent[0].toString()); 
+      continue;
     }
+
+    let possibleComponent = currentRoute.match(/component((\s|.|\r\n)*?)?}/gm); //Remove Route tag & any component path details, if present.
+
+    if (possibleComponent) {
+      //If the currentRoute contains component keyword.
+
+      possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm); //Remove component word that is present before component name.
+      if (!possibleComponent) continue;
+
+      possibleComponent = possibleComponent[0].match(/\w(.)*/gm); 
+      if (!possibleComponent) continue;
+
+      possibleComponent = possibleComponent[0].match(/(.)*\w/gm); 
+      if (!possibleComponent) continue;
+
+      components.push(possibleComponent[0].toString());
+    } else {
+      //If the currentRoute contains element keyword.
+
+      possibleComponent = currentRoute.match(/element((\s|.|\r\n)*)/gm); //Remove Route tag & any component path details, if present.
+      if (!possibleComponent) continue;
+
+      possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm); //Remove element word that is present before component name.
+      if (!possibleComponent) continue;
+
+      possibleComponent = possibleComponent[0].match(/\w(.)*/gm);
+      if (!possibleComponent) continue;
+
+      possibleComponent = possibleComponent[0].match(/(.)*\w/gm);
+      if (!possibleComponent) continue;
+
+      components.push(possibleComponent[0].toString());
+    }
+  }
 
   return components;
 }
