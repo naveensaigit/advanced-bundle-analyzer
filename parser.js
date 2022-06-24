@@ -17,7 +17,6 @@ export function getComponents(data) {
   //possibleRoutes holds all the statements that start with a Route tag.
 
   for (let currentRoute of possibleRoutes) {
-    
     if (!/component/.test(currentRoute) && !/element/.test(currentRoute)) {
       //If the currentRoute does not contain any component/element keyword.
 
