@@ -10,10 +10,10 @@ function addSyntax(data, router) {
   if (startIndex != -1) {
     data =
       data.slice(0, startIndex) +
-      "\r\n<Suspense fallback={<div>Loading...</div>}>\r\n" +
+      "\r\n<thisIsSuspenseTag fallback={<div>Loading...</div>}>\r\n" +
       data.slice(startIndex);
     let endIndex = data.lastIndexOf(end) + end.length;
-    data = data.slice(0, endIndex) + "\r\n</Suspense>" + data.slice(endIndex);
+    data = data.slice(0, endIndex) + "\r\n</thisIsSuspenseTag>" + data.slice(endIndex);
   }
 
   return data;
@@ -27,7 +27,7 @@ function modify(data) {
   let x = "";
   let y = "";
 
-  let lazyLoadSyntax = `const ${x} = lazy(() => import(${y}));`;
+  let lazyLoadSyntax = `const ${x} = thisIsALazyImportFunction(() => import(${y}));`;
   let isSuspense = 0;
   let isLazy = 0;
   let index = 0;
@@ -39,7 +39,7 @@ function modify(data) {
       if (component == importLine.defaultExp) {
         x = component;
         y = importLine.module;
-        lazyLoadSyntax = `const ${x} = lazy(() => import(${y}));`;
+        lazyLoadSyntax = `const ${x} = thisIsALazyImportFunction(() => import(${y}));`;
         add.push(lazyLoadSyntax);
         data = data.replace(importLine.import, "");
       }
@@ -61,14 +61,14 @@ function modify(data) {
       if (arr[0].alias == "HashRouter") hr = arr[0].namedExp;
 
       for (let nameExport of arr) {
-        if (nameExport.namedExp == "Suspense") isSuspense = 1;
-        if (nameExport.namedExp == "lazy") isLazy = 1;
+        if (nameExport.namedExp == "Suspense"  ||  nameExport.alias=='Suspense') isSuspense = 1;
+        if (nameExport.namedExp == "lazy"  ||  nameExport.alias=='lazy') isLazy = 1;
 
         for (let component of components) {
           if (nameExport.namedExp == component) {
             x = component;
             y = importLine.module;
-            lazyLoadSyntax = `const ${x} = lazy(async () => {
+            lazyLoadSyntax = `const ${x} = thisIsALazyImportFunction(async () => {
               const resolved = await import(${y});
               return {default: resolved['${x}']}
             })`;
@@ -90,9 +90,9 @@ function modify(data) {
   data = data.slice(0, index) + "\r\n" + result + "\r\n" + data.slice(index);
 
   if (!isSuspense && !isLazy)
-    data = "import { Suspense, lazy } from 'react';\r\n" + data;
-  else if (!isSuspense) data = "import { Suspense } from 'react';\r\n" + data;
-  else if (!isLazy) data = "import { lazy } from 'react';\r\n" + data;
+    data = "import { Suspense as thisIsSuspenseTag, lazy as thisIsALazyImportFunction } from 'react';\r\n" + data;
+  else if (!isSuspense) data = "import { Suspense as thisIsSuspenseTag } from 'react';\r\n" + data;
+  else if (!isLazy) data = "import { lazy as thisIsALazyImportFunction } from 'react';\r\n" + data;
 
   data = addSyntax(data, br);
   data = addSyntax(data, mr);
@@ -170,7 +170,8 @@ function getComponents(data) {
 }
 
 function removeFileImports(text) {
-  let reg = /import((\r\n|\s)*?)?('|")(.*)('|");/gm;
+  
+  let reg = /import((\r\n|\s|\()*?)?('|")(.*)('|")(\))*;/gm;
   return text.replace(reg, "");
 }
 

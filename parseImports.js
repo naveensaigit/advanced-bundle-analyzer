@@ -15,7 +15,8 @@ function removeComments(data) {
 }
 
 function removeFileImports(text) {
-  let reg = /import((\r\n|\s)*?)?('|")(.*)('|");/gm;
+  
+  let reg = /import((\r\n|\s|\()*?)?('|")(.*)('|")(\))*;/gm;
   return text.replace(reg, "");
 }
 
@@ -26,6 +27,7 @@ function getImports(text) {
   text = removeFileImports(text);
 
   let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm");
+
   do {
     match = reg.exec(text);
     if (match) {
