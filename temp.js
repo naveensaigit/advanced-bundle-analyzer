@@ -1,14 +1,16 @@
-import React from 'react';
-import { Suspense , lazy } from 'react';
+import React from "react";
+import { Suspense, lazy } from "react";
 import { makeStyles } from "@material-ui/core";
 
 import "./App.css";
 import { BrowserRouter, Route } from "react-router-dom";
 
 import Header from "./components/Header";
+
+
+
 const Homepage = React.lazy(() => import("./Pages/HomePage"));
 const CoinPage = React.lazy(() => import("./Pages/CoinPage"));
-
 
 const useStyles = makeStyles(() => ({
   App: {

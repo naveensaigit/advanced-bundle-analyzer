@@ -8,7 +8,7 @@ export function removeComments(data) {
 }
 
 export function removeFileImports(text) {
-  let reg = /import((\r\n|\s)*?)?('|")(.*)('|");/gm;
+  let reg = /import((\r\n|\s|\()*?)?('|")(.*)('|")(\))*;/gm;
   return text.replace(reg, "");
 }
 

@@ -6,8 +6,8 @@ import fs from "fs";
 
 let filePath = process.argv[2];
 let writePath = process.argv[3];
-let imports = [],
-  components = [];
+let imports = [];
+let components = [];
 
 function addSyntax(data, router) {
   let start = `<${router}>`;
@@ -121,5 +121,8 @@ fs.readFile(filePath, (err, e) => {
   let code = e.toString();
   components = getComponents(code);
   imports = getImports(code);
-  modify(code);
+
+  console.log(components);
+  console.log(imports);
+  //modify(code);
 });
