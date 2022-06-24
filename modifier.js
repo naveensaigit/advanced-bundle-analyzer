@@ -1,5 +1,13 @@
 // write to js file
-const fs = require("fs");
+// Requiring fs module in which readFile function is defined.
+import { getComponents } from "./parser.js";
+import { getImports } from './parseImports.js';
+import fs from "fs";
+
+let filePath = process.argv[2];
+let writePath = process.argv[3];
+let imports = [],
+  components = [];
 
 function addSyntax(data, router) {
   let start = `<${router}>`;
@@ -20,10 +28,6 @@ function addSyntax(data, router) {
 }
 
 function modify(data) {
-  //console.log(components);
-  //console.log(imports);
-  //console.log(data);
-
   let x = "";
   let y = "";
 
@@ -56,7 +60,7 @@ function modify(data) {
 
     let str = importLine.namedExps;
 
-    if (str != "null") {
+    if (str != "null"  &&  str.length) {
       let arr = JSON.parse(str);
 
       if (arr[0].alias == "BrowserRouter") br = arr[0].namedExp;
@@ -82,8 +86,6 @@ function modify(data) {
           }
         }
       }
-
-      //console.log();
     }
     if (data.search(importLine.import) == -1) continue;
 
@@ -105,7 +107,7 @@ function modify(data) {
   data = addSyntax(data, mr);
   data = addSyntax(data, hr);
 
-  fs.writeFile("./scripts/temp.js", data, (err) => {
+  fs.writeFile(writePath, data, (err) => {
     if (err) {
       console.error(err);
       return;
@@ -113,139 +115,11 @@ function modify(data) {
   });
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CODE FROM COMPONENT PARSER
-let filePath = "";
-
-process.argv.forEach(function (val, index, array) {
-  if (index === 2) filePath = val;
-});
-
-function removeComments(data) {
-  let regex = /\/\/.*/g;
-  data = data.replace(regex, "");
-  regex = /\/\*(\s|.|\r\n)*?\*\//gm;
-  data = data.replace(regex, "");
-
-  return data;
-}
-
-var components = [];
-
-function getComponents(data) {
-  data = removeComments(data);
-
-  let matches = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
-
-  for (let match of matches) {
-    if (!/component/.test(match) && !/element/.test(match)) {
-      let comp = match.match(/>((\s|.|\r\n)*?)?\/>/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/<((\s|.|\r\n)*?)?\/>/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
-
-      components.push(comp[0].toString());
-      continue;
-    }
-
-    let comp = match.match(/component((\s|.|\r\n)*?)?}/gm);
-
-    if (comp) {
-      comp = comp[0].match(/{((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
-      components.push(comp[0].toString());
-    } else {
-      comp = match.match(/element((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/{((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
-      components.push(comp[0].toString());
-    }
-  }
-}
-
-function removeFileImports(text) {
-  let reg = /import((\r\n|\s|\()*?)?('|")(.*)('|")(\))*;/gm;
-  return text.replace(reg, "");
-}
-
-let imports = [];
-
-function getImports(text) {
-  text = removeComments(text);
-  text = removeFileImports(text);
-
-  let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm"),
-    match;
-  do {
-    match = reg.exec(text);
-    if (match) {
-      let module = match[3].match(/('|")(.*)('|")/gm)[0];
-      let stmt = match[0];
-
-      let namedExps = new RegExp("{((.|\r\n|\\s)*?)}", "gm");
-      namedExps = namedExps.exec(stmt);
-      if (namedExps) {
-        namedExps = namedExps[1].split(",");
-        namedExps = namedExps.map((e) => {
-          e = e.replaceAll("\n", "").split(" ");
-          let alias = "",
-            namedExp = "";
-          for (let i of e) {
-            if (i != "" && i != "as") {
-              if (alias == "") alias = i;
-              else namedExp = i;
-            }
-          }
-          if (namedExp == "") return { namedExp: alias };
-          return { alias, namedExp };
-        });
-      }
-
-      let defaultExp = new RegExp(
-        "(import|,)((\r\n|\\s)*?)?(\\w*)((\r\n|\\s)*?)?(,|from)",
-        "gm"
-      );
-      defaultExp = defaultExp.exec(stmt);
-      if (defaultExp) defaultExp = defaultExp[4].trim().replaceAll("\n", "");
-
-      let namespaceExp = new RegExp(
-        "\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)",
-        "gm"
-      );
-      namespaceExp = namespaceExp.exec(stmt);
-      if (namespaceExp)
-        namespaceExp = namespaceExp[5].trim().replaceAll("\n", "");
-
-      imports.push({
-        import: stmt,
-        defaultExp,
-        namedExps: JSON.stringify(namedExps),
-        namespaceExp,
-        module,
-      });
-    }
-  } while (match);
-}
-
 fs.readFile(filePath, (err, e) => {
   if (err) throw err;
 
-  let data = e.toString();
-  getComponents(data);
-  getImports(data);
-  modify(data);
+  let code = e.toString();
+  components = getComponents(code);
+  imports = getImports(code);
+  modify(code);
 });
-////////////////////////////////////////////////////////////////////////////////////////////////////////////

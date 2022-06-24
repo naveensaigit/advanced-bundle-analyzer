@@ -1,3 +1,5 @@
+//THIS FILE IS JUST FOR TESTING 'parser.js'. THIS FILE IS NOT A PART OF CODE & HAS NO ACTUAL MEANING.
+
 <>
   <BrowserRouter>
     <div className={classes.App}>

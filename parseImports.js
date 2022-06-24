@@ -1,11 +1,4 @@
-const fs = require("fs");
-let filePath = "";
-
-process.argv.forEach(function (val, index, _) {
-  if (index === 2) filePath = val;
-});
-
-function removeComments(data) {
+export function removeComments(data) {
   let regex = /\/\/.*/g;
   data = data.replace(regex, "");
   regex = /\/\*(\s|.|\r\n)*?\*\//gm;
@@ -14,18 +7,18 @@ function removeComments(data) {
   return data;
 }
 
-function removeFileImports(text) {
-  let reg = /import((\r\n|\s|\()*?)?('|")(.*)('|")(\))*;/gm;
+export function removeFileImports(text) {
+  let reg = /import((\r\n|\s)*?)?('|")(.*)('|");/gm;
   return text.replace(reg, "");
 }
 
-let imports = [];
-
-function getImports(text) {
+export function getImports(text) {
+  let imports = [];
   text = removeComments(text);
   text = removeFileImports(text);
 
-  let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm"), match;
+  let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm"),
+    match;
 
   do {
     match = reg.exec(text);
@@ -76,12 +69,6 @@ function getImports(text) {
       });
     }
   } while (match);
+
+  return imports;
 }
-
-fs.readFile(filePath, (err, e) => {
-  if (err) throw err;
-
-  let data = e.toString();
-  getImports(data);
-  console.log(imports);
-});
