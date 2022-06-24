@@ -9,7 +9,7 @@ export function removeComments(data) {
 }
 
 export function getComponents(data) {
-  var components = [];
+  const components = [];
 
   data = removeComments(data);
 
