@@ -1,70 +1,81 @@
-// Requiring fs module in which readFile function is defined.
-const fs = require("fs");
 
-let filePath = "";
-
-process.argv.forEach(function (val, index, array) {
-  if (index === 2) filePath = val;
-});
-
-function removeComments(data) {
-  let regex =/\/\/.*/g;
+export function removeComments(data) {
+  let regex = /\/\/.*/g; //RegEx for removing single line comments
   data = data.replace(regex, "");
-  regex = /\/\*(\s|.|\r\n)*?\*\//gm;
+
+  regex = /\/\*(\s|.|\r\n)*?\*\//gm; //RegEx for removing multi line comments.
   data = data.replace(regex, "");
 
   return data;
 }
 
-var components = [];
+export function getComponents(data) {
+  var components = [];
 
-function getComponents(data) {
-  data = removeComments(data);
+    data = removeComments(data);
 
-  let matches = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
+    let possibleRoutes = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
+    //possibleRoutes holds all the statements that start with a Route tag.
 
-  for (let match of matches) {
-    if (!/component/.test(match) && !/element/.test(match)) {
-      let comp = match.match(/>((\s|.|\r\n)*?)?\/>/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/<((\s|.|\r\n)*?)?\/>/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
+    for (let currentRoute of possibleRoutes) {
+      if (!/component/.test(currentRoute) && !/element/.test(currentRoute)) {
+        //If the currentRoute does not contain any component or element keyword, it is of the following type:
+        //    <Route path={`${match.path}/:topicId`}>
+        //        <Topic />
+        //    </Route>
 
-      components.push(comp[0].toString());
-      continue;
+        let possibleComponent = currentRoute.match(/>((\s|.|\r\n)*?)?\/>/gm); //Refining our component to get its name by removing the route tag
+        if (!possibleComponent) continue; //Checking if the component is still possible in current route
+
+        possibleComponent =
+          possibleComponent[0].match(/<((\s|.|\r\n)*?)?\/>/gm); //Refining our component to get its name by removing the route tag
+        if (!possibleComponent) continue;
+
+        possibleComponent = possibleComponent[0].match(/\w(.)*/gm); //Refining our component to get its name by removing the route tag
+        if (!possibleComponent) continue;
+
+        possibleComponent = possibleComponent[0].match(/(.)*\w/gm); //Refining our component to get its name by removing the route tag
+        if (!possibleComponent) continue;
+
+        components.push(possibleComponent[0].toString()); //Finally pushing component in components array
+        continue;
+      }
+
+      let possibleComponent = currentRoute.match(/component((\s|.|\r\n)*?)?}/gm);
+
+      if (possibleComponent) {
+        //If the currentRoute contains component keyword, it is of the following type:
+        //    <Route path="/" component={Homepage} exact />
+
+        possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm);
+        if (!possibleComponent) continue;
+
+        possibleComponent = possibleComponent[0].match(/\w(.)*/gm);
+        if (!possibleComponent) continue;
+
+        possibleComponent = possibleComponent[0].match(/(.)*\w/gm);
+        if (!possibleComponent) continue;
+
+        components.push(possibleComponent[0].toString());
+      } else {
+        //If the currentRoute contains element keyword, it is of the following type:
+        //    <Route path="/" element = {<Homepage />} exact />
+
+        possibleComponent = currentRoute.match(/element((\s|.|\r\n)*)/gm);
+        if (!possibleComponent) continue;
+
+        possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm);
+        if (!possibleComponent) continue;
+
+        possibleComponent = possibleComponent[0].match(/\w(.)*/gm);
+        if (!possibleComponent) continue;
+
+        possibleComponent = possibleComponent[0].match(/(.)*\w/gm);
+        if (!possibleComponent) continue;
+
+        components.push(possibleComponent[0].toString());
+      }
     }
 
-    let comp = match.match(/component((\s|.|\r\n)*?)?}/gm);
-
-    if (comp) {
-      comp = comp[0].match(/{((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
-      components.push(comp[0].toString());
-    } else {
-      comp = match.match(/element((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/{((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
-      components.push(comp[0].toString());
-    }
-  }
+  return components;
 }
-fs.readFile(filePath, (err, e) => {
-  if (err) throw err;
-
-  let data = e.toString();
-  getComponents(data);
-  console.log(components);
-});

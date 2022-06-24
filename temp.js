@@ -1,15 +1,16 @@
-import { lazy } from 'react';
-
+import React from "react";
+import { Suspense, lazy } from "react";
 import { makeStyles } from "@material-ui/core";
-import { Suspense } from 'react';
 
 import "./App.css";
 import { BrowserRouter, Route } from "react-router-dom";
 
 import Header from "./components/Header";
-const Homepage = lazy(() => import("./Pages/HomePage"));
-const CoinPage = lazy(() => import("./Pages/CoinPage"));
 
+
+
+const Homepage = React.lazy(() => import("./Pages/HomePage"));
+const CoinPage = React.lazy(() => import("./Pages/CoinPage"));
 
 const useStyles = makeStyles(() => ({
   App: {
@@ -23,13 +24,16 @@ function App() {
   const classes = useStyles();
 
   return (
-    <BrowserRouter>
+    
+<Suspense fallback={<div>Loading...</div>}>
+<BrowserRouter>
       <div className={classes.App}>
         <Header />
         <Route path="/" component={Homepage} exact />
         <Route path="/coins/:id" component={CoinPage} exact />
       </div>
     </BrowserRouter>
+</Suspense>
   );
 }
 
