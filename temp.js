@@ -1,13 +1,15 @@
-import { Suspense as thisIsSuspenseTag, lazy as thisIsALazyImportFunction } from 'react';
+import { Suspense } from "react";
 import { makeStyles } from "@material-ui/core";
 
 import "./App.css";
 import { BrowserRouter, Route } from "react-router-dom";
 
-import Header from "./components/Header";
-const Homepage = thisIsALazyImportFunction(() => import("./Pages/HomePage"));
-const CoinPage = thisIsALazyImportFunction(() => import("./Pages/CoinPage"));
+import Header from "./components/Header";
 
+import React, { lazy } from "react";
+
+const Homepage = React.lazy(() => import("./Pages/HomePage"));
+const CoinPage = React.lazy(() => import("./Pages/CoinPage"));
 
 const useStyles = makeStyles(() => ({
   App: {
@@ -21,16 +23,15 @@ function App() {
   const classes = useStyles();
 
   return (
-    
-<thisIsSuspenseTag fallback={<div>Loading...</div>}>
-<BrowserRouter>
-      <div className={classes.App}>
-        <Header />
-        <Route path="/" component={Homepage} exact />
-        <Route path="/coins/:id" component={CoinPage} exact />
-      </div>
-    </BrowserRouter>
-</thisIsSuspenseTag>
+    <Suspense fallback={<div>Loading...</div>}>
+      <BrowserRouter>
+        <div className={classes.App}>
+          <Header />
+          <Route path="/" component={Homepage} exact />
+          <Route path="/coins/:id" component={CoinPage} exact />
+        </div>
+      </BrowserRouter>
+    </Suspense>
   );
 }
 

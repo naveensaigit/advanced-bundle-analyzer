@@ -15,7 +15,6 @@ function removeComments(data) {
 }
 
 function removeFileImports(text) {
-  
   let reg = /import((\r\n|\s|\()*?)?('|")(.*)('|")(\))*;/gm;
   return text.replace(reg, "");
 }
@@ -26,7 +25,7 @@ function getImports(text) {
   text = removeComments(text);
   text = removeFileImports(text);
 
-  let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm");
+  let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm"), match;
 
   do {
     match = reg.exec(text);
@@ -38,29 +37,32 @@ function getImports(text) {
       namedExps = namedExps.exec(stmt);
       if (namedExps) {
         namedExps = namedExps[1].split(",");
-        namedExps = namedExps.map(e => {
+        namedExps = namedExps.map((e) => {
           e = e.replaceAll("\n", "").split(" ");
-          let alias = '', namedExp = '';
+          let alias = "",
+            namedExp = "";
           for (let i of e) {
-            if (i != '' && i != 'as') {
-              if (alias == '')
-                alias = i;
-              else
-                namedExp = i;
+            if (i != "" && i != "as") {
+              if (alias == "") alias = i;
+              else namedExp = i;
             }
           }
-          if (namedExp == '')
-            return { namedExp: alias };
+          if (namedExp == "") return { namedExp: alias };
           return { alias, namedExp };
         });
       }
 
-      let defaultExp = new RegExp("(import|,)((\r\n|\\s)*?)?(\\w*)((\r\n|\\s)*?)?(,|from)", "gm");
+      let defaultExp = new RegExp(
+        "(import|,)((\r\n|\\s)*?)?(\\w*)((\r\n|\\s)*?)?(,|from)",
+        "gm"
+      );
       defaultExp = defaultExp.exec(stmt);
-      if (defaultExp)
-        defaultExp = defaultExp[4].trim().replaceAll("\n", "");
+      if (defaultExp) defaultExp = defaultExp[4].trim().replaceAll("\n", "");
 
-      let namespaceExp = new RegExp("\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)", "gm");
+      let namespaceExp = new RegExp(
+        "\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)",
+        "gm"
+      );
       namespaceExp = namespaceExp.exec(stmt);
       if (namespaceExp)
         namespaceExp = namespaceExp[5].trim().replaceAll("\n", "");
@@ -70,7 +72,7 @@ function getImports(text) {
         defaultExp,
         namedExps: JSON.stringify(namedExps),
         namespaceExp,
-        module
+        module,
       });
     }
   } while (match);
