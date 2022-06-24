@@ -2,8 +2,8 @@
 const fs = require("fs");
 
 function modify(data) {
-  //console.log(components);
-  //console.log(imports);
+  console.log(components);
+  console.log(imports);
   // console.log(data);
 
   let x = "";
@@ -33,11 +33,23 @@ function modify(data) {
 
     if (str != "null") {
       let arr = JSON.parse(str);
-      console.log(arr);
 
-      for (let e of arr) {
-        if (e.namedExp == "Suspense") isSuspense = 1;
-        if (e.namedExp == "lazy") isLazy = 1;
+      for (let nameExport of arr) {
+        if (nameExport.namedExp == "Suspense") isSuspense = 1;
+        if (nameExport.namedExp == "lazy") isLazy = 1;
+
+        for (let component of components) {
+          if (nameExport.namedExp == component) {
+            x = component;
+            y = importLine.module;
+            lazyLoadSyntax = `const ${x} = lazy(async () => {
+              const resolved = await import(${y});
+              return {default: resolved['${x}']}
+            })`;
+            add.push(lazyLoadSyntax);
+            data = data.replace(importLine.import, "");
+          }
+        }
       }
 
       console.log();
