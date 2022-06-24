@@ -1,13 +1,4 @@
-// Requiring fs module in which readFile function is defined.
-const fs = require("fs");
-
-let filePath = "";
-
-process.argv.forEach(function (val, index, array) {
-  if (index === 2) filePath = val;
-});
-
-function removeComments(data) {
+export function removeComments(data) {
   let regex =/\/\/.*/g;
   data = data.replace(regex, "");
   regex = /\/\*(\s|.|\r\n)*?\*\//gm;
@@ -16,9 +7,8 @@ function removeComments(data) {
   return data;
 }
 
-var components = [];
-
-function getComponents(data) {
+export function getComponents(data) {
+  let components = [];
   data = removeComments(data);
 
   let matches = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
@@ -34,7 +24,7 @@ function getComponents(data) {
       comp = comp[0].match(/(.)*\w/gm);
       if (!comp) continue;
 
-      components.push(comp[0].toString());
+      components.push(comp[0]);
       continue;
     }
 
@@ -47,7 +37,7 @@ function getComponents(data) {
       if (!comp) continue;
       comp = comp[0].match(/(.)*\w/gm);
       if (!comp) continue;
-      components.push(comp[0].toString());
+      components.push(comp[0]);
     } else {
       comp = match.match(/element((\s|.|\r\n)*)/gm);
       if (!comp) continue;
@@ -57,14 +47,9 @@ function getComponents(data) {
       if (!comp) continue;
       comp = comp[0].match(/(.)*\w/gm);
       if (!comp) continue;
-      components.push(comp[0].toString());
+      components.push(comp[0].split(" ")[0]);
     }
   }
-}
-fs.readFile(filePath, (err, e) => {
-  if (err) throw err;
 
-  let data = e.toString();
-  getComponents(data);
-  console.log(components);
-});
+  return components;
+}

@@ -1,7 +1,10 @@
+
+// Tests for parseImports.js:getImports function
+
 import 
 defaultExport from 'module';
 
-import {named1, alias2 as named2} from 'module';
+import {named1, named2 as alias2} from 'module';
 
 import * as 
 namespaceExport from
@@ -12,14 +15,14 @@ import
 as 
 namespaceExport,
  {named1, 
-    alias2 
+    named2 
     as 
-named2} 
+alias2} 
 from 'module';
 
 import          {named1
-                , alias2
- as named2}
+                , named2
+ as alias2}
  , 
     * as 
     namespaceExport     from        'module';
@@ -31,7 +34,7 @@ namespaceExport
 from 'module';
 
 import defaultExport,     {named1, 
-alias2 as named2} 
+named2 as alias2} 
 from 
 'module';
 
@@ -39,7 +42,7 @@ import * as namespaceExport,      defaultExport
      from      'module';
 
 import 
-{named1, alias2 as named2},
+{named1, named2 as alias2},
 
 defaultExport from 
 'module';
@@ -50,31 +53,30 @@ defaultExport            ,
 *
 as
 namespaceExport, {named1   
-, alias2 as named2, 
-...} from 'module';
+, named2 as alias2, named3 as alias3} from 'module';
 
 import
 
 defaultExport
-, {named1, alias2 as named2, ...}, * as namespaceExport from 'module';
+, {named1, named2 as alias2}, * as namespaceExport from 'module';
 
 import 
 * as namespaceExport       , defaultExport      ,
 {named1, 
-alias2 as 
-named2} from 'module';
+named2 as 
+alias2} from 'module';
 
 import * as namespaceExport,
-{named1, alias2 as named2},
+{named1, named2 as alias2},
 defaultExport from 'module';
 
-import {named1, alias2 as named2}
+import {named1, named2 as alias2}
 
 
 ,defaultExport
 , * as namespaceExport from 'module';
 
-import {named1, alias2 as named2}, * as namespaceExport
+import {named1, named2 as alias2}, * as namespaceExport
 ,
 
  defaultExport

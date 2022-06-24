@@ -1,202 +1,59 @@
-// write to js file
-const fs = require("fs");
+import fs from "fs";
+import {getImports, objToImport, isPresent, removeComp, getLazyCode} from './parseImports.js';
+import {getComponents} from './parser.js';
 
-function modify(data) {
-  //console.log(components);
-  //console.log(imports);
-  // console.log(data);
+let readPath = process.argv[2], writePath = process.argv[3];
 
-  let x = "";
-  let y = "";
+function addSuspense(code) {
+  let match, newcode = code;
 
-  let lazyLoadSyntax = `const ${x} = lazy(() => import(${y}));`;
-  let isSuspense = 0;
-  let isLazy = 0;
-  let index = 0;
+  let start = new RegExp("<((\r\n|\\s)*?)?((\r\n|\\s)*?)?(Browser|Hash|History|Memory|Native|Static)?Router((\r\n|\\s)*?)?>", "gm");
+  do {
+    match = start.exec(code);
+    if(match)
+      newcode = newcode.replace(match[0], "<ReactSuspenseAliased fallback={<></>}>\n" + match[0])
+  } while (match);
 
-  let add = [];
+  let end = new RegExp("<((\r\n|\\s)*?)?\/((\r\n|\\s)*?)?(Browser|Hash|History|Memory|Native|Static)?Router((\r\n|\\s)*?)?>", "gm");
+  do {
+    match = end.exec(code);
+    if(match)
+      newcode = newcode.replace(match[0], match[0] + "\n</ReactSuspenseAliased>\n")
+  } while (match);
 
-  for (let component of components) {
-    for (let importLine of imports) {
-      if (component == importLine.defaultExp) {
-        x = component;
-        y = importLine.module;
-        lazyLoadSyntax = `const ${x} = lazy(() => import(${y}));`;
-        add.push(lazyLoadSyntax);
-        data = data.replace(importLine.import, "");
+  return newcode;
+}
+
+function modifyCode(code, comps, imports) {
+  let lazyCode = "\nimport {Suspense as ReactSuspenseAliased, lazy as ReactLazyAliased} from 'react';\n\n";
+
+  for(let comp of comps) {
+    for(let index = 0; index < imports.length; index++) {
+      let impType = isPresent(comp, imports[index]);
+
+      if(impType) {
+        let newobj = removeComp(comp, impType, imports[index]);
+        let newImp = objToImport(newobj);
+        code = code.replace(imports[index].import, newImp);
+        imports[index].import = newImp;
+        lazyCode += getLazyCode(comp, impType, imports[index].module);
+
+        index = imports.length;
       }
     }
   }
 
-  for (let importLine of imports) {
-    let str = importLine.namedExps;
+  code = code.replace(imports[imports.length-1].import, `${imports[imports.length-1].import}${lazyCode}`);
+  code = addSuspense(code);
 
-    if (str != "null") {
-      let arr = JSON.parse(str);
-      console.log(arr);
-
-      for (let e of arr) {
-        if (e.namedExp == "Suspense") isSuspense = 1;
-        if (e.namedExp == "lazy") isLazy = 1;
-      }
-
-      console.log();
-    }
-    if (data.search(importLine.import) == -1) continue;
-
-    if (index < data.search(importLine.import) + importLine.import.length + 1)
-      index = data.search(importLine.import) + importLine.import.length + 1;
-  }
-
-  let result = add.join("\r\n");
-  data = data.slice(0, index) + "\r\n" + result + "\r\n" + data.slice(index);
-
-  if (!isSuspense && !isLazy)
-    data = "import { Suspense, lazy } from 'react';\r\n" + data;
-  else if (!isSuspense) data = "import { Suspense } from 'react';\r\n" + data;
-  else if (!isLazy) data = "import { lazy } from 'react';\r\n" + data;
-
-  fs.writeFile("./scripts/temp.js", data, (err) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
+  fs.writeFile(writePath, code, (err) => {
+    if (err) console.error(err);
   });
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CODE FROM COMPONENT PARSER
-let filePath = "";
-
-process.argv.forEach(function (val, index, array) {
-  if (index === 2) filePath = val;
-});
-
-function removeComments(data) {
-  let regex = /\/\/.*/g;
-  data = data.replace(regex, "");
-  regex = /\/\*(\s|.|\r\n)*?\*\//gm;
-  data = data.replace(regex, "");
-
-  return data;
-}
-
-var components = [];
-
-function getComponents(data) {
-  data = removeComments(data);
-
-  let matches = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
-
-  for (let match of matches) {
-    if (!/component/.test(match) && !/element/.test(match)) {
-      let comp = match.match(/>((\s|.|\r\n)*?)?\/>/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/<((\s|.|\r\n)*?)?\/>/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
-
-      components.push(comp[0].toString());
-      continue;
-    }
-
-    let comp = match.match(/component((\s|.|\r\n)*?)?}/gm);
-
-    if (comp) {
-      comp = comp[0].match(/{((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
-      components.push(comp[0].toString());
-    } else {
-      comp = match.match(/element((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/{((\s|.|\r\n)*)/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/\w(.)*/gm);
-      if (!comp) continue;
-      comp = comp[0].match(/(.)*\w/gm);
-      if (!comp) continue;
-      components.push(comp[0].toString());
-    }
-  }
-}
-
-function removeFileImports(text) {
-  let reg = /import((\r\n|\s)*?)?('|")(.*)('|");/gm;
-  return text.replace(reg, "");
-}
-
-let imports = [];
-
-function getImports(text) {
-  text = removeComments(text);
-  text = removeFileImports(text);
-
-  let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm"),
-    match;
-  do {
-    match = reg.exec(text);
-    if (match) {
-      let module = match[3].match(/('|")(.*)('|")/gm)[0];
-      let stmt = match[0];
-
-      let namedExps = new RegExp("{((.|\r\n|\\s)*?)}", "gm");
-      namedExps = namedExps.exec(stmt);
-      if (namedExps) {
-        namedExps = namedExps[1].split(",");
-        namedExps = namedExps.map((e) => {
-          e = e.replaceAll("\n", "").split(" ");
-          let alias = "",
-            namedExp = "";
-          for (let i of e) {
-            if (i != "" && i != "as") {
-              if (alias == "") alias = i;
-              else namedExp = i;
-            }
-          }
-          if (namedExp == "") return { namedExp: alias };
-          return { alias, namedExp };
-        });
-      }
-
-      let defaultExp = new RegExp(
-        "(import|,)((\r\n|\\s)*?)?(\\w*)((\r\n|\\s)*?)?(,|from)",
-        "gm"
-      );
-      defaultExp = defaultExp.exec(stmt);
-      if (defaultExp) defaultExp = defaultExp[4].trim().replaceAll("\n", "");
-
-      let namespaceExp = new RegExp(
-        "\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)",
-        "gm"
-      );
-      namespaceExp = namespaceExp.exec(stmt);
-      if (namespaceExp)
-        namespaceExp = namespaceExp[5].trim().replaceAll("\n", "");
-
-      imports.push({
-        import: stmt,
-        defaultExp,
-        namedExps: JSON.stringify(namedExps),
-        namespaceExp,
-        module,
-      });
-    }
-  } while (match);
-}
-
-fs.readFile(filePath, (err, e) => {
+fs.readFile(readPath, (err, e) => {
   if (err) throw err;
 
-  let data = e.toString();
-  getComponents(data);
-  getImports(data);
-  modify(data);
+  let code = e.toString(), imports = getImports(code), comps = getComponents(code);
+  modifyCode(code, comps, imports);
 });
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
