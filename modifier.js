@@ -1,10 +1,28 @@
 // write to js file
 const fs = require("fs");
 
+function addSyntax(data, router) {
+  let start = `<${router}>`;
+  let end = `</${router}>`;
+
+  let startIndex = data.indexOf(start);
+
+  if (startIndex != -1) {
+    data =
+      data.slice(0, startIndex) +
+      "\r\n<Suspense fallback={<div>Loading...</div>}>\r\n" +
+      data.slice(startIndex);
+    let endIndex = data.lastIndexOf(end) + end.length;
+    data = data.slice(0, endIndex) + "\r\n</Suspense>" + data.slice(endIndex);
+  }
+
+  return data;
+}
+
 function modify(data) {
-  console.log(components);
-  console.log(imports);
-  // console.log(data);
+  //console.log(components);
+  //console.log(imports);
+  //console.log(data);
 
   let x = "";
   let y = "";
@@ -28,11 +46,19 @@ function modify(data) {
     }
   }
 
+  let br = "BrowserRouter";
+  let mr = "MemoryRouter";
+  let hr = "HashRouter";
+
   for (let importLine of imports) {
     let str = importLine.namedExps;
 
     if (str != "null") {
       let arr = JSON.parse(str);
+
+      if (arr[0].alias == "BrowserRouter") br = arr[0].namedExp;
+      if (arr[0].alias == "MemoryRouter") mr = arr[0].namedExp;
+      if (arr[0].alias == "HashRouter") hr = arr[0].namedExp;
 
       for (let nameExport of arr) {
         if (nameExport.namedExp == "Suspense") isSuspense = 1;
@@ -52,7 +78,7 @@ function modify(data) {
         }
       }
 
-      console.log();
+      //console.log();
     }
     if (data.search(importLine.import) == -1) continue;
 
@@ -67,6 +93,10 @@ function modify(data) {
     data = "import { Suspense, lazy } from 'react';\r\n" + data;
   else if (!isSuspense) data = "import { Suspense } from 'react';\r\n" + data;
   else if (!isLazy) data = "import { lazy } from 'react';\r\n" + data;
+
+  data = addSyntax(data, br);
+  data = addSyntax(data, mr);
+  data = addSyntax(data, hr);
 
   fs.writeFile("./scripts/temp.js", data, (err) => {
     if (err) {
