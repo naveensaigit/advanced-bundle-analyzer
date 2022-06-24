@@ -1,5 +1,5 @@
 
-// Tests for parseImports.js:getImports function
+//THIS FILE IS JUST FOR TESTING 'parseImports.js'. THIS FILE IS NOT A PART OF CODE & HAS NO ACTUAL MEANING.
 
 import 
 defaultExport from 'module';

@@ -1,80 +1,85 @@
+// Parsing import statements in a file
+
+// Remove comments present in file
 export function removeComments(data) {
+  // Regex to find single line comments - Starts with //
   let regex = /\/\/.*/g;
+  // Replace these comments with empty string
   data = data.replace(regex, "");
+
+  // Regex to find multi-line comments
+  // Starts with /* and ends with */
   regex = /\/\*(\s|.|\r\n)*?\*\//gm;
+  // Replace these comments with empty string
   data = data.replace(regex, "");
 
   return data;
 }
 
-export function removeFileImports(text) {
-  let reg = /import((\r\n|\s)*?)?('|")(.*)('|");/gm;
+// Remove single file imports and existing dynamic imports
+export function removeImports(text) {
+  // Remove imports of the type -
+  // 1. File import - import "filename";
+  // 2. Dynamic import - import("filename")
+  let reg = /import((\r\n|\s|\()*?)?('|")(.*)('|")(\))*;/gm;
+  // Replace these imports with empty string
   return text.replace(reg, "");
 }
 
-export function stringToNamedExps(str) {
-  str = str.replaceAll("\n", "").split(" ");
-  let alias, namedExp;
-
-  for (let i of str) {
-    if (i != '' && i != 'as') {
-      if (!namedExp)
-        namedExp = i;
-      else {
-        alias = i;
-        break;
-      }
-    }
-  }
-
-  return { alias, namedExp };
-}
-
-export function namedExpsToString(namedExps) {
-  let str = "{";
-
-  for(let named of namedExps) {
-    if(named.alias != undefined)
-      str += `${named.namedExp} as ${named.alias}, `;
-    else
-      str += `${named.namedExp}, `;
-  }
-
-  return str.slice(0, -2) + "}";
-}
-
+// Get named exports section from an import statement
 export function getNamedExps(stmt) {
+  // Named exports section is enclosed within { ... }
   let namedExps = new RegExp("{((.|\r\n|\\s)*?)}", "gm");
   namedExps = namedExps.exec(stmt);
 
   if (namedExps) {
+    // Taking the second element to get the second group from
+    // regex which contains the contents inside { ... }
+
+    // Split string by , to get each export individually
     namedExps = namedExps[1].split(",");
+    // Convert the string into an object
     namedExps = namedExps.map(stringToNamedExps);
   }
 
   return namedExps;
 }
 
+// Get default export from an import statement
 export function getDefaultExp(stmt) {
+  // Default export is preceded by either "import" or ","
+  // and succeeded by either "," or "from"
   let defaultExp = new RegExp("(import|,)((\r\n|\\s)*?)?(\\w*)((\r\n|\\s)*?)?(,|from)", "gm");
   defaultExp = defaultExp.exec(stmt);
 
   if (defaultExp)
+    // Taking the fourth element to get the fourth group
+    // from regex which contains the default export
+
+    // Remove trailing whitespaces and remove newlines
     defaultExp = defaultExp[4].trim().replaceAll("\n", "");
 
   return defaultExp;
 }
 
+// Get namespace export from an import statement
 export function getNamespaceExp(stmt) {
+  // Namespace export contains "* as". It can
+  // be succeeded by either a "," or "from"
   let namespaceExp = new RegExp("\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)", "gm");
   namespaceExp = namespaceExp.exec(stmt);
 
   if (namespaceExp)
+    // Taking the fifth element to get the fifth group
+    // from regex which contains the namespace export
+
+    // Remove trailing whitespaces and remove newlines
     namespaceExp = namespaceExp[5].trim().replaceAll("\n", "");
 
   return namespaceExp;
 }
 
+// Convert import statement to an object
 export function importToObj(imp) {
   let module = imp[3].match(/('|")(.*)('|")/gm)[0];
   let stmt = imp[0];
@@ -86,97 +91,31 @@ export function importToObj(imp) {
   let namespaceExp = getNamespaceExp(stmt);
 
   return {
-    import: stmt,
-    defaultExp,
-    namedExps: namedExps,
-    namespaceExp,
-    module
+    import: stmt,         // Import statement
+    defaultExp,           // Default export present in the import statement
+    namedExps: namedExps, // Named exports present in the import statement
+    namespaceExp,         // Namespace export present in the import statement
+    module                // Name of module from which import is happening
   };
 }
 
-export function objToImport(obj) {
-  let isDef = (obj.defaultExp != null);
-  let isNamespace = (obj.namespaceExp != null);
-  let isNamed = (obj.namedExps != null);
-
-  if(!(isDef || isNamespace || isNamed))
-    return "";
-
-  let namedStr = isNamed ? namedExpsToString(obj.namedExps) : "";
-  let stmt = "import ";
-
-  if(isDef)
-    stmt += obj.defaultExp;
-
-  if(isNamespace)
-    stmt += (isDef ? ", " : "") + "* as " + obj.namespaceExp;
-
-  if(isNamed)
-    stmt += ((isDef || isNamespace) ? ", " : "") + namedStr;
-
-  stmt += ` from ${obj.module};`;
-
-  return stmt;
-}
-
-export function isPresent(comp, imp) {
-  if(comp == imp.defaultExp)
-    return ['default'];
-  else if(imp.namedExps != null)
-    for(let named of imp.namedExps) {
-      if(named.alias != null) {
-        if(comp == named.alias)
-          return ['alias', named];
-      }
-      else if(comp == named.namedExp)
-        return ['namedExp', named];
-    }
-  return false;
-}
-
-export function removeComp(comp, impType, imp) {
-  if(impType[0] == 'default')
-    imp.defaultExp = null;
-  else {
-    imp.namedExps = imp.namedExps.filter(e => e[impType[0]] != comp);
-    if(imp.namedExps.length == 0)
-      imp.namedExps = null;
-  }
-  return imp;
-}
-
-export function getLazyCode(comp, impType, path) {
-  switch(impType[0]) {
-    case 'default':
-      return `const ${comp} = ReactLazyAliased(() => import(${path}));\n`;
-
-    case 'namedExp':
-      return `const ${comp} = ReactLazyAliased(async () => {
-        const resolved = await import(${path});
-        return {default: resolved["${comp}"]};
-      });\n`;
-
-    case 'alias':
-      return `const ${comp} = ReactLazyAliased(async () => {
-        const resolved = await import(${path});
-        return {default: resolved["${impType[1].namedExp}"]};
-      });\n`;
-    
-    default: "";
-  }
-}
-
-export function getImports(text) {
+// Get an array of import objects for each import statement in the code
+export function getImports(code) {
   let imports = [], match;
-  text = removeComments(text);
-  text = removeFileImports(text);
+  // Remove comments from the code
+  code = removeComments(code);
+  // Remove single file imports and existing dynamic imports
+  code = removeImports(code);
 
+  // Import statements are of the form "import <imports> from <moduleName>;"
   let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm");
+
   do {
-    match = reg.exec(text);
+    // Find each import
+    match = reg.exec(code);
     if (match) {
+      // Convert the import statement into an object
       let importObj = importToObj(match);
-      // importObj.import1 = objToImport(importObj);
       imports.push(importObj);
     }
   } while (match);
