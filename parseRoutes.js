@@ -29,8 +29,6 @@ export function getComponents(data) {
 
   let possibleRoutes = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
   //possibleRoutes holds all the statements that start with a Route tag.
-  
-  if(!possibleRoutes)    return [];
 
   if (!possibleRoutes) return [];
 
