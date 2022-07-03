@@ -11,22 +11,22 @@ function getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded) {
 
     for (let importLine of imports) {
       if (component === importLine.defaultExp) {
-        canBeLazyLoaded.push(component);
+        canBeLazyLoaded.push({"name": component, "module": importLine.module});
         done = true;
         break;
       }
     }
 
-    if (!done) alreadyLazyLoaded.push(component);
+    if (!done) alreadyLazyLoaded.push({"name": component, "module": '"!"'});
   }
 }
 
 function modify(loaded, f) {
-  loaded = loaded.map((name) => {
+  loaded = loaded.map((x) => {
     return `
       {
-        "name": "${name}",
-        "path": "${f}"
+        "name": "${x.name}",
+        "path": ${x.module}
       }`;
   });
 

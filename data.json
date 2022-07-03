@@ -347,7 +347,7 @@
   "./scripts/.gitignore": {
     "name": ".gitignore",
     "path": "./scripts/.gitignore",
-    "size": 44,
+    "size": 0,
     "type": "gitignore",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -367,7 +367,7 @@
   "./scripts/data.json": {
     "name": "data.json",
     "path": "./scripts/data.json",
-    "size": 0,
+    "size": 19705,
     "type": "json",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -447,7 +447,7 @@
   "./scripts/parseFile.js": {
     "name": "parseFile.js",
     "path": "./scripts/parseFile.js",
-    "size": 1487,
+    "size": 1557,
     "type": "js",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -492,11 +492,11 @@
     "alreadyLazyLoaded": [
       {
         "name": "Homepage",
-        "path": "./scripts/temp.js"
+        "path": "!"
       },
       {
         "name": "CoinPage",
-        "path": "./scripts/temp.js"
+        "path": "!"
       }
     ],
     "canBeLazyLoaded": [],
@@ -516,7 +516,7 @@
   "./scripts": {
     "name": "scripts",
     "path": "./scripts",
-    "size": 23338,
+    "size": 43069,
     "noOfSubFolders": 0,
     "noOfSubFiles": 16,
     "alreadyLazyLoaded": 2,
@@ -539,17 +539,17 @@
   "./src/App.js": {
     "name": "App.js",
     "path": "./src/App.js",
-    "size": 728,
+    "size": 797,
     "type": "js",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [
       {
         "name": "Homepage",
-        "path": "./src/App.js"
+        "path": "C:/Users/Sprinklr/Desktop/practice/New folder/react-crypto-tracker/src/Pages/HomePage"
       },
       {
         "name": "CoinPage",
-        "path": "./src/App.js"
+        "path": "./Pages/CoinPage"
       }
     ],
     "parentFolder": "./src"
@@ -750,7 +750,7 @@
   "./src": {
     "name": "src",
     "path": "./src",
-    "size": 29458,
+    "size": 29527,
     "noOfSubFolders": 4,
     "noOfSubFiles": 16,
     "alreadyLazyLoaded": 0,
@@ -763,7 +763,7 @@
   ".": {
     "name": ".",
     "path": ".",
-    "size": 27135899,
+    "size": 27155699,
     "noOfSubFolders": 11,
     "noOfSubFiles": 60,
     "alreadyLazyLoaded": 2,
