@@ -1,6 +1,6 @@
 // write to js file
 // Requiring fs module in which readFile function is defined.
-import { getComponents } from "./parser.js";
+import { getComponents } from "./parseRoutes.js";
 import { getImports } from './parseImports.js';
 import fs from "fs";
 
@@ -124,5 +124,5 @@ fs.readFile(filePath, (err, e) => {
 
   console.log(components);
   console.log(imports);
-  //modify(code);
+  modify(code);
 });

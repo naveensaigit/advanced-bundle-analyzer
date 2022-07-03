@@ -1,0 +1,775 @@
+{
+  "./.gitignore": {
+    "name": ".gitignore",
+    "path": "./.gitignore",
+    "size": 333,
+    "type": "gitignore",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "."
+  },
+
+  "./package-lock.json": {
+    "name": "package-lock.json",
+    "path": "./package-lock.json",
+    "size": 1646820,
+    "type": "json",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "."
+  },
+
+  "./package.json": {
+    "name": "package.json",
+    "path": "./package.json",
+    "size": 1307,
+    "type": "json",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "."
+  },
+
+  "./README.md": {
+    "name": "README.md",
+    "path": "./README.md",
+    "size": 802,
+    "type": "md",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "."
+  },
+
+  "./yarn.lock": {
+    "name": "yarn.lock",
+    "path": "./yarn.lock",
+    "size": 534805,
+    "type": "lock",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "."
+  },
+
+  "./build/asset-manifest.json": {
+    "name": "asset-manifest.json",
+    "path": "./build/asset-manifest.json",
+    "size": 1066,
+    "type": "json",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build"
+  },
+
+  "./build/index.html": {
+    "name": "index.html",
+    "path": "./build/index.html",
+    "size": 3991,
+    "type": "html",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build"
+  },
+
+  "./build/report.html": {
+    "name": "report.html",
+    "path": "./build/report.html",
+    "size": 1011099,
+    "type": "html",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build"
+  },
+
+  "./build/report.json": {
+    "name": "report.json",
+    "path": "./build/report.json",
+    "size": 289858,
+    "type": "json",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build"
+  },
+
+  "./build/stats.json": {
+    "name": "stats.json",
+    "path": "./build/stats.json",
+    "size": 19518851,
+    "type": "json",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build"
+  },
+
+  "./build/static/css/2.02daa001.chunk.css": {
+    "name": "2.02daa001.chunk.css",
+    "path": "./build/static/css/2.02daa001.chunk.css",
+    "size": 3307,
+    "type": "css",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/css"
+  },
+
+  "./build/static/css/2.02daa001.chunk.css.map": {
+    "name": "2.02daa001.chunk.css.map",
+    "path": "./build/static/css/2.02daa001.chunk.css.map",
+    "size": 6105,
+    "type": "map",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/css"
+  },
+
+  "./build/static/css/main.1f49dda3.chunk.css": {
+    "name": "main.1f49dda3.chunk.css",
+    "path": "./build/static/css/main.1f49dda3.chunk.css",
+    "size": 557,
+    "type": "css",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/css"
+  },
+
+  "./build/static/css/main.1f49dda3.chunk.css.map": {
+    "name": "main.1f49dda3.chunk.css.map",
+    "path": "./build/static/css/main.1f49dda3.chunk.css.map",
+    "size": 1728,
+    "type": "map",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/css"
+  },
+
+  "./build/static/css": {
+    "name": "css",
+    "path": "./build/static/css",
+    "size": 11697,
+    "noOfSubFolders": 0,
+    "noOfSubFiles": 4,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": [],
+    "filesInside": ["./build/static/css/2.02daa001.chunk.css", "./build/static/css/2.02daa001.chunk.css.map", "./build/static/css/main.1f49dda3.chunk.css", "./build/static/css/main.1f49dda3.chunk.css.map"],
+    "parentFolder": "./build/static"
+  },
+
+  "./build/static/js/2.538a2fbe.chunk.js": {
+    "name": "2.538a2fbe.chunk.js",
+    "path": "./build/static/js/2.538a2fbe.chunk.js",
+    "size": 815080,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/js"
+  },
+
+  "./build/static/js/2.538a2fbe.chunk.js.LICENSE.txt": {
+    "name": "2.538a2fbe.chunk.js.LICENSE.txt",
+    "path": "./build/static/js/2.538a2fbe.chunk.js.LICENSE.txt",
+    "size": 2053,
+    "type": "txt",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/js"
+  },
+
+  "./build/static/js/2.538a2fbe.chunk.js.map": {
+    "name": "2.538a2fbe.chunk.js.map",
+    "path": "./build/static/js/2.538a2fbe.chunk.js.map",
+    "size": 2817137,
+    "type": "map",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/js"
+  },
+
+  "./build/static/js/main.451a6625.chunk.js": {
+    "name": "main.451a6625.chunk.js",
+    "path": "./build/static/js/main.451a6625.chunk.js",
+    "size": 14071,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/js"
+  },
+
+  "./build/static/js/main.451a6625.chunk.js.map": {
+    "name": "main.451a6625.chunk.js.map",
+    "path": "./build/static/js/main.451a6625.chunk.js.map",
+    "size": 39669,
+    "type": "map",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/js"
+  },
+
+  "./build/static/js/runtime-main.863b1de5.js": {
+    "name": "runtime-main.863b1de5.js",
+    "path": "./build/static/js/runtime-main.863b1de5.js",
+    "size": 1575,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/js"
+  },
+
+  "./build/static/js/runtime-main.863b1de5.js.map": {
+    "name": "runtime-main.863b1de5.js.map",
+    "path": "./build/static/js/runtime-main.863b1de5.js.map",
+    "size": 8288,
+    "type": "map",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./build/static/js"
+  },
+
+  "./build/static/js": {
+    "name": "js",
+    "path": "./build/static/js",
+    "size": 3697873,
+    "noOfSubFolders": 0,
+    "noOfSubFiles": 7,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": [],
+    "filesInside": ["./build/static/js/2.538a2fbe.chunk.js", "./build/static/js/2.538a2fbe.chunk.js.LICENSE.txt", "./build/static/js/2.538a2fbe.chunk.js.map", "./build/static/js/main.451a6625.chunk.js", "./build/static/js/main.451a6625.chunk.js.map", "./build/static/js/runtime-main.863b1de5.js", "./build/static/js/runtime-main.863b1de5.js.map"],
+    "parentFolder": "./build/static"
+  },
+
+  "./build/static": {
+    "name": "static",
+    "path": "./build/static",
+    "size": 3709570,
+    "noOfSubFolders": 2,
+    "noOfSubFiles": 11,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": ["./build/static/css", "./build/static/js"],
+    "filesInside": [],
+    "parentFolder": "./build"
+  },
+
+  "./build": {
+    "name": "build",
+    "path": "./build",
+    "size": 24534435,
+    "noOfSubFolders": 3,
+    "noOfSubFiles": 16,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": ["./build/static"],
+    "filesInside": ["./build/asset-manifest.json", "./build/index.html", "./build/report.html", "./build/report.json", "./build/stats.json"],
+    "parentFolder": "."
+  },
+
+  "./public/banner2.jpg": {
+    "name": "banner2.jpg",
+    "path": "./public/banner2.jpg",
+    "size": 343365,
+    "type": "jpg",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./public"
+  },
+
+  "./public/favicon.ico": {
+    "name": "favicon.ico",
+    "path": "./public/favicon.ico",
+    "size": 3870,
+    "type": "ico",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./public"
+  },
+
+  "./public/index.html": {
+    "name": "index.html",
+    "path": "./public/index.html",
+    "size": 1768,
+    "type": "html",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./public"
+  },
+
+  "./public/logo192.png": {
+    "name": "logo192.png",
+    "path": "./public/logo192.png",
+    "size": 5347,
+    "type": "png",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./public"
+  },
+
+  "./public/logo512.png": {
+    "name": "logo512.png",
+    "path": "./public/logo512.png",
+    "size": 9664,
+    "type": "png",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./public"
+  },
+
+  "./public/manifest.json": {
+    "name": "manifest.json",
+    "path": "./public/manifest.json",
+    "size": 517,
+    "type": "json",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./public"
+  },
+
+  "./public/robots.txt": {
+    "name": "robots.txt",
+    "path": "./public/robots.txt",
+    "size": 70,
+    "type": "txt",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./public"
+  },
+
+  "./public": {
+    "name": "public",
+    "path": "./public",
+    "size": 364601,
+    "noOfSubFolders": 0,
+    "noOfSubFiles": 7,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": [],
+    "filesInside": ["./public/banner2.jpg", "./public/favicon.ico", "./public/index.html", "./public/logo192.png", "./public/logo512.png", "./public/manifest.json", "./public/robots.txt"],
+    "parentFolder": "."
+  },
+
+  "./scripts/.gitignore": {
+    "name": ".gitignore",
+    "path": "./scripts/.gitignore",
+    "size": 44,
+    "type": "gitignore",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/analyze.js": {
+    "name": "analyze.js",
+    "path": "./scripts/analyze.js",
+    "size": 553,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/data.json": {
+    "name": "data.json",
+    "path": "./scripts/data.json",
+    "size": 19703,
+    "type": "json",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/dataGenerator.js": {
+    "name": "dataGenerator.js",
+    "path": "./scripts/dataGenerator.js",
+    "size": 204,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/getInfoFiles.js": {
+    "name": "getInfoFiles.js",
+    "path": "./scripts/getInfoFiles.js",
+    "size": 1693,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/getInfoFolder.js": {
+    "name": "getInfoFolder.js",
+    "path": "./scripts/getInfoFolder.js",
+    "size": 2751,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/imports.js": {
+    "name": "imports.js",
+    "path": "./scripts/imports.js",
+    "size": 1290,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/modifier.js": {
+    "name": "modifier.js",
+    "path": "./scripts/modifier.js",
+    "size": 3720,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/package.json": {
+    "name": "package.json",
+    "path": "./scripts/package.json",
+    "size": 26,
+    "type": "json",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/parseDirectory.js": {
+    "name": "parseDirectory.js",
+    "path": "./scripts/parseDirectory.js",
+    "size": 480,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/parseFile.js": {
+    "name": "parseFile.js",
+    "path": "./scripts/parseFile.js",
+    "size": 1465,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/parseImports.js": {
+    "name": "parseImports.js",
+    "path": "./scripts/parseImports.js",
+    "size": 2070,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/parseRoutes.js": {
+    "name": "parseRoutes.js",
+    "path": "./scripts/parseRoutes.js",
+    "size": 3620,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/routes.js": {
+    "name": "routes.js",
+    "path": "./scripts/routes.js",
+    "size": 4250,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/temp.js": {
+    "name": "temp.js",
+    "path": "./scripts/temp.js",
+    "size": 922,
+    "type": "js",
+    "alreadyLazyLoaded": [
+      {
+        "name": "Homepage",
+        "path": "./scripts/temp.js"
+      },
+      {
+        "name": "CoinPage",
+        "path": "./scripts/temp.js"
+      }
+    ],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts/writer.js": {
+    "name": "writer.js",
+    "path": "./scripts/writer.js",
+    "size": 189,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./scripts"
+  },
+
+  "./scripts": {
+    "name": "scripts",
+    "path": "./scripts",
+    "size": 42980,
+    "noOfSubFolders": 0,
+    "noOfSubFiles": 16,
+    "alreadyLazyLoaded": 2,
+    "canBeLazyLoaded": 0,
+    "foldersInside": [],
+    "filesInside": ["./scripts/.gitignore", "./scripts/analyze.js", "./scripts/data.json", "./scripts/dataGenerator.js", "./scripts/getInfoFiles.js", "./scripts/getInfoFolder.js", "./scripts/imports.js", "./scripts/modifier.js", "./scripts/package.json", "./scripts/parseDirectory.js", "./scripts/parseFile.js", "./scripts/parseImports.js", "./scripts/parseRoutes.js", "./scripts/routes.js", "./scripts/temp.js", "./scripts/writer.js"],
+    "parentFolder": "."
+  },
+
+  "./src/App.css": {
+    "name": "App.css",
+    "path": "./src/App.css",
+    "size": 245,
+    "type": "css",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src"
+  },
+
+  "./src/App.js": {
+    "name": "App.js",
+    "path": "./src/App.js",
+    "size": 728,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [
+      {
+        "name": "Homepage",
+        "path": "./src/App.js"
+      },
+      {
+        "name": "CoinPage",
+        "path": "./src/App.js"
+      }
+    ],
+    "parentFolder": "./src"
+  },
+
+  "./src/CryptoContext.js": {
+    "name": "CryptoContext.js",
+    "path": "./src/CryptoContext.js",
+    "size": 635,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src"
+  },
+
+  "./src/index.css": {
+    "name": "index.css",
+    "path": "./src/index.css",
+    "size": 379,
+    "type": "css",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src"
+  },
+
+  "./src/index.js": {
+    "name": "index.js",
+    "path": "./src/index.js",
+    "size": 376,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src"
+  },
+
+  "./src/components/CoinInfo.js": {
+    "name": "CoinInfo.js",
+    "path": "./src/components/CoinInfo.js",
+    "size": 3501,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/components"
+  },
+
+  "./src/components/CoinsTable.js": {
+    "name": "CoinsTable.js",
+    "path": "./src/components/CoinsTable.js",
+    "size": 6720,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/components"
+  },
+
+  "./src/components/Header.js": {
+    "name": "Header.js",
+    "path": "./src/components/Header.js",
+    "size": 1747,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/components"
+  },
+
+  "./src/components/SelectButton.js": {
+    "name": "SelectButton.js",
+    "path": "./src/components/SelectButton.js",
+    "size": 812,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/components"
+  },
+
+  "./src/components/Banner/Banner.js": {
+    "name": "Banner.js",
+    "path": "./src/components/Banner/Banner.js",
+    "size": 1506,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/components/Banner"
+  },
+
+  "./src/components/Banner/Carousel.js": {
+    "name": "Carousel.js",
+    "path": "./src/components/Banner/Carousel.js",
+    "size": 2523,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/components/Banner"
+  },
+
+  "./src/components/Banner": {
+    "name": "Banner",
+    "path": "./src/components/Banner",
+    "size": 4029,
+    "noOfSubFolders": 0,
+    "noOfSubFiles": 2,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": [],
+    "filesInside": ["./src/components/Banner/Banner.js", "./src/components/Banner/Carousel.js"],
+    "parentFolder": "./src/components"
+  },
+
+  "./src/components": {
+    "name": "components",
+    "path": "./src/components",
+    "size": 16809,
+    "noOfSubFolders": 1,
+    "noOfSubFiles": 6,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": ["./src/components/Banner"],
+    "filesInside": ["./src/components/CoinInfo.js", "./src/components/CoinsTable.js", "./src/components/Header.js", "./src/components/SelectButton.js"],
+    "parentFolder": "./src"
+  },
+
+  "./src/config/api.js": {
+    "name": "api.js",
+    "path": "./src/config/api.js",
+    "size": 630,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/config"
+  },
+
+  "./src/config/data.js": {
+    "name": "data.js",
+    "path": "./src/config/data.js",
+    "size": 233,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/config"
+  },
+
+  "./src/config": {
+    "name": "config",
+    "path": "./src/config",
+    "size": 863,
+    "noOfSubFolders": 0,
+    "noOfSubFiles": 2,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": [],
+    "filesInside": ["./src/config/api.js", "./src/config/data.js"],
+    "parentFolder": "./src"
+  },
+
+  "./src/Pages/CoinPage.js": {
+    "name": "CoinPage.js",
+    "path": "./src/Pages/CoinPage.js",
+    "size": 4457,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/Pages"
+  },
+
+  "./src/Pages/HomePage.js": {
+    "name": "HomePage.js",
+    "path": "./src/Pages/HomePage.js",
+    "size": 266,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/Pages"
+  },
+
+  "./src/Pages/namedExports.js": {
+    "name": "namedExports.js",
+    "path": "./src/Pages/namedExports.js",
+    "size": 4700,
+    "type": "js",
+    "alreadyLazyLoaded": [],
+    "canBeLazyLoaded": [],
+    "parentFolder": "./src/Pages"
+  },
+
+  "./src/Pages": {
+    "name": "Pages",
+    "path": "./src/Pages",
+    "size": 9423,
+    "noOfSubFolders": 0,
+    "noOfSubFiles": 3,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 0,
+    "foldersInside": [],
+    "filesInside": ["./src/Pages/CoinPage.js", "./src/Pages/HomePage.js", "./src/Pages/namedExports.js"],
+    "parentFolder": "./src"
+  },
+
+  "./src": {
+    "name": "src",
+    "path": "./src",
+    "size": 29458,
+    "noOfSubFolders": 4,
+    "noOfSubFiles": 16,
+    "alreadyLazyLoaded": 0,
+    "canBeLazyLoaded": 2,
+    "foldersInside": ["./src/components", "./src/config", "./src/Pages"],
+    "filesInside": ["./src/App.css", "./src/App.js", "./src/CryptoContext.js", "./src/index.css", "./src/index.js"],
+    "parentFolder": "."
+  },
+
+  ".": {
+    "name": ".",
+    "path": ".",
+    "size": 27155541,
+    "noOfSubFolders": 11,
+    "noOfSubFiles": 60,
+    "alreadyLazyLoaded": 2,
+    "canBeLazyLoaded": 2,
+    "foldersInside": ["./build", "./public", "./scripts", "./src"],
+    "filesInside": ["./.gitignore", "./package-lock.json", "./package.json", "./README.md", "./yarn.lock"],
+    "parentFolder": "/"
+  }
+}

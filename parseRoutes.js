@@ -1,11 +1,25 @@
 export function removeComments(data) {
-  let regex = /\/\/.*/g; //RegEx for removing single line comments.
-  data = data.replace(regex, "");
+  let dataWithoutComments = "";
+  let commented = 0;
+  let prevCharacter = "";
 
-  regex = /\/\*(\s|.|\r\n)*?\*\//gm; //RegEx for removing multi line comments.
-  data = data.replace(regex, "");
+  for (let character of data) {
+    if (!commented) {
+      if (prevCharacter === "/" && character === "/") commented = 1; //Beginning of single line comments.
+      if (prevCharacter === "/" && character === "*") commented = 2; //Beginning of multi line comments.
+    } else {
+      if (prevCharacter === "\r" && character === "\n" && commented === 1)
+        commented = 0; //Ending of single line comments.
+      if (prevCharacter === "*" && character === "/" && commented === 2)
+        commented = 0; //Ending of single line comments.
+    }
 
-  return data;
+    if (!commented) dataWithoutComments += character;
+
+    prevCharacter = character;
+  }
+
+  return dataWithoutComments;
 }
 
 export function getComponents(data) {
@@ -15,6 +29,8 @@ export function getComponents(data) {
 
   let possibleRoutes = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
   //possibleRoutes holds all the statements that start with a Route tag.
+
+  if (!possibleRoutes) return [];
 
   for (let currentRoute of possibleRoutes) {
     if (!/component/.test(currentRoute) && !/element/.test(currentRoute)) {
@@ -32,7 +48,7 @@ export function getComponents(data) {
       possibleComponent = possibleComponent[0].match(/(.)*\w/gm); //Remove extra characters that are present at the end of component name.
       if (!possibleComponent) continue;
 
-      components.push(possibleComponent[0].toString()); 
+      components.push(possibleComponent[0].toString());
       continue;
     }
 
@@ -44,10 +60,10 @@ export function getComponents(data) {
       possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm); //Remove component word that is present before component name.
       if (!possibleComponent) continue;
 
-      possibleComponent = possibleComponent[0].match(/\w(.)*/gm); 
+      possibleComponent = possibleComponent[0].match(/\w(.)*/gm);
       if (!possibleComponent) continue;
 
-      possibleComponent = possibleComponent[0].match(/(.)*\w/gm); 
+      possibleComponent = possibleComponent[0].match(/(.)*\w/gm);
       if (!possibleComponent) continue;
 
       components.push(possibleComponent[0].toString());
