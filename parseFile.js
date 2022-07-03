@@ -21,12 +21,12 @@ function getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded) {
   }
 }
 
-function modify(loaded, f) {
-  loaded = loaded.map((x) => {
+function modify(loaded) {
+  loaded = loaded.map((component) => {
     return `
       {
-        "name": "${x.name}",
-        "path": ${x.module}
+        "name": "${component.name}",
+        "path": ${component.module}
       }`;
   });
 
@@ -52,8 +52,8 @@ export function parseFile(filePath) {
   let noOfCanBeLazyLoaded = canBeLazyLoaded.length;
   let noOfAlreadyLazyLoaded = alreadyLazyLoaded.length;
 
-  alreadyLazyLoaded = modify(alreadyLazyLoaded, filePath);
-  canBeLazyLoaded = modify(canBeLazyLoaded, filePath);
+  alreadyLazyLoaded = modify(alreadyLazyLoaded);
+  canBeLazyLoaded = modify(canBeLazyLoaded);
 
   return {
     canBeLazyLoaded,
