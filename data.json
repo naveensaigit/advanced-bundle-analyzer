@@ -367,7 +367,7 @@
   "./scripts/data.json": {
     "name": "data.json",
     "path": "./scripts/data.json",
-    "size": 19703,
+    "size": 0,
     "type": "json",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -447,7 +447,7 @@
   "./scripts/parseFile.js": {
     "name": "parseFile.js",
     "path": "./scripts/parseFile.js",
-    "size": 1465,
+    "size": 1487,
     "type": "js",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -467,7 +467,7 @@
   "./scripts/parseRoutes.js": {
     "name": "parseRoutes.js",
     "path": "./scripts/parseRoutes.js",
-    "size": 3620,
+    "size": 3660,
     "type": "js",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -487,7 +487,7 @@
   "./scripts/temp.js": {
     "name": "temp.js",
     "path": "./scripts/temp.js",
-    "size": 922,
+    "size": 921,
     "type": "js",
     "alreadyLazyLoaded": [
       {
@@ -516,7 +516,7 @@
   "./scripts": {
     "name": "scripts",
     "path": "./scripts",
-    "size": 42980,
+    "size": 23338,
     "noOfSubFolders": 0,
     "noOfSubFiles": 16,
     "alreadyLazyLoaded": 2,
@@ -763,7 +763,7 @@
   ".": {
     "name": ".",
     "path": ".",
-    "size": 27155541,
+    "size": 27135899,
     "noOfSubFolders": 11,
     "noOfSubFiles": 60,
     "alreadyLazyLoaded": 2,
