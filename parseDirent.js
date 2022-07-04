@@ -57,7 +57,12 @@ function getKeyValueFolder(
   },`;
 }
 
-function getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded, components, imports) {
+function getLazyLoaded(
+  alreadyLazyLoaded,
+  canBeLazyLoaded,
+  components,
+  imports
+) {
   for (let component of components) {
     for (let importLine of imports) {
       if (component === importLine.defaultExp) {
@@ -172,7 +177,7 @@ function getInfo(path, parentDirectory) {
     filesInside,
     parentDirectory
   );
-  
+
   output += "\r\n" + KeyValue;
 
   return {
@@ -181,7 +186,7 @@ function getInfo(path, parentDirectory) {
     alreadyLazyLoaded,
     canBeLazyLoaded,
     size,
-    output
+    output,
   };
 }
 
@@ -250,7 +255,7 @@ function getFilesAndFolders(data) {
     .filter((dirent) => !dirent.isDirectory())
     .map((dirent) => dirent.name);
 
-    return { files, folders };
+  return { files, folders };
 }
 
 export function parseDirectory(dirPath) {
