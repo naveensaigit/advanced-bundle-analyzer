@@ -7,8 +7,7 @@ import { BrowserRouter, Route } from "react-router-dom";
 
 import Header from "./components/Header";
 
-const Homepage = React.lazy(() => import("./Pages/HomePage"));
-const CoinPage = React.lazy(() => import("./Pages/CoinPage"));
+const Homepage = React.lazy(() => import("./Pages/HomePage")), CoinPage = React.lazy(() => import("./Pages/CoinPage"));
 
 const useStyles = makeStyles(() => ({
   App: {

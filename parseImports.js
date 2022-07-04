@@ -25,8 +25,29 @@ export function removeComments(data) {
   return dataWithoutComments;
 }
 
+function getLazyLoadedImports(text, imports) {
+  let reg = /(const|var|let|,)(.*?)?import?((\r\n|\s|\()*?)?('|")?(.*?)?('|")(\)?\)?)?/gm;
+  let match = text.match(reg);
+
+  if (!match) return;
+
+  for (let importLine of match) {
+    reg = /(\s|\r\n)(.*?)(\s|\r\n)/m;
+    let componentName = importLine.match(reg);
+    reg = /("|')(\s|\r\n|.)*("|')/m;
+    let moduleName = importLine.match(reg);
+
+    imports.push({
+      import: importLine,
+      lazyExp: (componentName[0]).slice(1, -1),
+      module: moduleName[0],
+    });
+  }
+}
+
 // Remove single file imports and existing dynamic imports
-export function removeImports(text) {
+export function removeImports(text, imports) {
+  getLazyLoadedImports(text, imports);
   // Remove imports of the type -
   // 1. File import - import "filename";
   // 2. Dynamic import - import("filename")
@@ -129,7 +150,7 @@ export function getImports(code) {
   // Remove comments from the code
   //code = removeComments(code);
   // Remove single file imports and existing dynamic imports
-  code = removeImports(code);
+  code = removeImports(code, imports);
 
   // Import statements are of the form "import <imports> from <moduleName>;"
   let reg = new RegExp("import((.|\r\n|\\s)*?)?from((.|\r\n|\\s)*?)?;", "gm");

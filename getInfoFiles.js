@@ -60,8 +60,8 @@ export function getInfoFiles(files, parentDirectory, filesInside) {
       canBeLazyLoaded,
       parentDirectory
     );
-    output += "\r\n" + KeyValue;
 
+    output += "\r\n" + KeyValue;
     filesInside.push(filePath);
   }
 

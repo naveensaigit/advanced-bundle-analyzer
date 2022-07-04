@@ -7,26 +7,24 @@ let imports = [];
 
 function getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded) {
   for (let component of components) {
-    let done = false;
-
     for (let importLine of imports) {
       if (component === importLine.defaultExp) {
-        canBeLazyLoaded.push({"name": component, "module": importLine.module});
-        done = true;
+        canBeLazyLoaded.push({ name: component, module: importLine.module });
+        break;
+      }
+      if (component === importLine.lazyExp) {
+        alreadyLazyLoaded.push({ name: component, module: importLine.module });
         break;
       }
     }
-
-    if (!done) alreadyLazyLoaded.push({"name": component, "module": '"!"'});
   }
 }
 
 function modify(loaded, filePath) {
   loaded = loaded.map((component) => {
-
     let parentFolder = "";
-    if(component.module[1] ==='.'){
-      parentFolder=`"${filePath.substr(0, filePath.lastIndexOf('/'))}`;
+    if (component.module[1] === ".") {
+      parentFolder = `"${filePath.substr(0, filePath.lastIndexOf("/"))}`;
       component.module = component.module.substr(2, component.module.length);
     }
 
@@ -49,14 +47,9 @@ export function parseFile(filePath) {
 
   let code = data.toString();
   components = getComponents(code);
-  
-console.log(filePath, components);
-imports = [];
-
+  imports = [];
 
   if (components.length) imports = getImports(code);
-
-  console.log(JSON.stringify(imports, undefined, 2));
 
   let canBeLazyLoaded = [];
   let alreadyLazyLoaded = [];
