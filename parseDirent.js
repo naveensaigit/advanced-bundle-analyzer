@@ -2,13 +2,6 @@ import fs from "fs";
 import { getComponents } from "./parseRoutes.js";
 import { getImports } from "./parseImports.js";
 
-let files = [];
-let folders = [];
-
-let components = [];
-let imports = [];
-let output = "";
-
 function getKeyValueFile(
   name,
   filePath,
@@ -64,7 +57,7 @@ function getKeyValueFolder(
   },`;
 }
 
-function getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded) {
+function getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded, components, imports) {
   for (let component of components) {
     for (let importLine of imports) {
       if (component === importLine.defaultExp) {
@@ -105,14 +98,14 @@ export function parseFile(filePath) {
   const data = fs.readFileSync(filePath, "utf8");
 
   let code = data.toString();
-  components = getComponents(code);
-  imports = [];
+  let components = getComponents(code);
+  let imports = [];
 
   if (components.length) imports = getImports(code);
 
   let canBeLazyLoaded = [];
   let alreadyLazyLoaded = [];
-  getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded);
+  getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded, components, imports);
 
   let noOfCanBeLazyLoaded = canBeLazyLoaded.length;
   let noOfAlreadyLazyLoaded = alreadyLazyLoaded.length;
@@ -148,7 +141,7 @@ function getInfo(path, parentDirectory) {
   canBeLazyLoaded = filesCombinedInfo.totalCanBeLazy;
   noOfSubFiles = files.length;
   size = filesCombinedInfo.totalSize;
-  output += filesCombinedInfo.output;
+  let output = filesCombinedInfo.output;
 
   for (let folder of folders) {
     if (folder === ".git" || folder === ".vscode" || folder === "node_modules")
@@ -164,6 +157,7 @@ function getInfo(path, parentDirectory) {
     size += folderInfo.size;
     noOfSubFiles += folderInfo.noOfSubFiles;
     noOfSubFolders += folderInfo.noOfSubFolders + 1;
+    output += folderInfo.output;
   }
 
   let KeyValue = getKeyValueFolder(
@@ -178,6 +172,7 @@ function getInfo(path, parentDirectory) {
     filesInside,
     parentDirectory
   );
+  
   output += "\r\n" + KeyValue;
 
   return {
@@ -186,11 +181,12 @@ function getInfo(path, parentDirectory) {
     alreadyLazyLoaded,
     canBeLazyLoaded,
     size,
+    output
   };
 }
 
 export function getInfoFolder(path) {
-  getInfo(path, "/");
+  let output = getInfo(path, "/").output;
 
   output = output.slice(5, -1);
   output = `{
@@ -247,18 +243,18 @@ export function getInfoFiles(files, parentDirectory, filesInside) {
 }
 
 function getFilesAndFolders(data) {
-  folders = data
+  let folders = data
     .filter((dirent) => dirent.isDirectory())
     .map((dirent) => dirent.name);
-  files = data
+  let files = data
     .filter((dirent) => !dirent.isDirectory())
     .map((dirent) => dirent.name);
+
+    return { files, folders };
 }
 
 export function parseDirectory(dirPath) {
   const data = fs.readdirSync(dirPath, { withFileTypes: true });
 
-  getFilesAndFolders(data);
-
-  return { files, folders };
+  return getFilesAndFolders(data);
 }
