@@ -21,12 +21,19 @@ function getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded) {
   }
 }
 
-function modify(loaded) {
+function modify(loaded, filePath) {
   loaded = loaded.map((component) => {
+
+    let parentFolder = "";
+    if(component.module[1] ==='.'){
+      parentFolder=`"${filePath.substr(0, filePath.lastIndexOf('/'))}`;
+      component.module = component.module.substr(2, component.module.length);
+    }
+
     return `
       {
         "name": "${component.name}",
-        "path": ${component.module}
+        "path": ${parentFolder}${component.module}
       }`;
   });
 
@@ -42,8 +49,14 @@ export function parseFile(filePath) {
 
   let code = data.toString();
   components = getComponents(code);
+  
+console.log(filePath, components);
+imports = [];
+
 
   if (components.length) imports = getImports(code);
+
+  console.log(JSON.stringify(imports, undefined, 2));
 
   let canBeLazyLoaded = [];
   let alreadyLazyLoaded = [];
@@ -52,8 +65,8 @@ export function parseFile(filePath) {
   let noOfCanBeLazyLoaded = canBeLazyLoaded.length;
   let noOfAlreadyLazyLoaded = alreadyLazyLoaded.length;
 
-  alreadyLazyLoaded = modify(alreadyLazyLoaded);
-  canBeLazyLoaded = modify(canBeLazyLoaded);
+  alreadyLazyLoaded = modify(alreadyLazyLoaded, filePath);
+  canBeLazyLoaded = modify(canBeLazyLoaded, filePath);
 
   return {
     canBeLazyLoaded,
