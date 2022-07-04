@@ -50,11 +50,11 @@ export function parseFile(filePath) {
   imports = [];
 
   if (components.length) imports = getImports(code);
-
+  
   let canBeLazyLoaded = [];
   let alreadyLazyLoaded = [];
   getLazyLoaded(alreadyLazyLoaded, canBeLazyLoaded);
-
+  
   let noOfCanBeLazyLoaded = canBeLazyLoaded.length;
   let noOfAlreadyLazyLoaded = alreadyLazyLoaded.length;
 

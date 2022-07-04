@@ -367,7 +367,7 @@
   "./scripts/data.json": {
     "name": "data.json",
     "path": "./scripts/data.json",
-    "size": 19756,
+    "size": 5578,
     "type": "json",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -447,7 +447,7 @@
   "./scripts/parseFile.js": {
     "name": "parseFile.js",
     "path": "./scripts/parseFile.js",
-    "size": 1875,
+    "size": 1930,
     "type": "js",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -457,7 +457,7 @@
   "./scripts/parseImports.js": {
     "name": "parseImports.js",
     "path": "./scripts/parseImports.js",
-    "size": 5357,
+    "size": 4674,
     "type": "js",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -467,7 +467,7 @@
   "./scripts/parseRoutes.js": {
     "name": "parseRoutes.js",
     "path": "./scripts/parseRoutes.js",
-    "size": 3660,
+    "size": 2977,
     "type": "js",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -516,7 +516,7 @@
   "./scripts": {
     "name": "scripts",
     "path": "./scripts",
-    "size": 46718,
+    "size": 31229,
     "noOfSubFolders": 0,
     "noOfSubFiles": 16,
     "alreadyLazyLoaded": 2,
@@ -717,7 +717,7 @@
   "./src/Pages/HomePage.js": {
     "name": "HomePage.js",
     "path": "./src/Pages/HomePage.js",
-    "size": 266,
+    "size": 314,
     "type": "js",
     "alreadyLazyLoaded": [],
     "canBeLazyLoaded": [],
@@ -737,7 +737,7 @@
   "./src/Pages": {
     "name": "Pages",
     "path": "./src/Pages",
-    "size": 9423,
+    "size": 9471,
     "noOfSubFolders": 0,
     "noOfSubFiles": 3,
     "alreadyLazyLoaded": 0,
@@ -750,7 +750,7 @@
   "./src": {
     "name": "src",
     "path": "./src",
-    "size": 29458,
+    "size": 29506,
     "noOfSubFolders": 4,
     "noOfSubFiles": 16,
     "alreadyLazyLoaded": 0,
@@ -763,7 +763,7 @@
   ".": {
     "name": ".",
     "path": ".",
-    "size": 27159279,
+    "size": 27143838,
     "noOfSubFolders": 11,
     "noOfSubFiles": 60,
     "alreadyLazyLoaded": 2,
