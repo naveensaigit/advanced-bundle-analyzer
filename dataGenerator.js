@@ -1,7 +1,12 @@
-import { writeFile } from "./Writer.js";
-import { getInfoFolder } from "./getInfoFolder.js";
+import fs from "fs";
+import { getInfoFolder } from "./parseDirent.js";
 
 let path = process.argv[2];
 
 let output = getInfoFolder(path);
-writeFile("scripts/data.json", output);
+fs.writeFile("scripts/data.json", output, (err) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+});
