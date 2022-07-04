@@ -2,27 +2,9 @@
 
 // Remove comments present in file
 export function removeComments(data) {
-  let dataWithoutComments = "";
-  let commented = 0;
-  let prevCharacter = "";
-
-  for (let character of data) {
-    if (!commented) {
-      if (prevCharacter === "/" && character === "/") commented = 1; //Beginning of single line comments.
-      if (prevCharacter === "/" && character === "*") commented = 2; //Beginning of multi line comments.
-    } else {
-      if (prevCharacter === "\r" && character === "\n" && commented === 1)
-        commented = 0; //Ending of single line comments.
-      if (prevCharacter === "*" && character === "/" && commented === 2)
-        commented = 0; //Ending of single line comments.
-    }
-
-    if (!commented) dataWithoutComments += character;
-
-    prevCharacter = character;
-  }
-
-  return dataWithoutComments;
+  let regex = /\/\/.*|\/\*[^]*\*\//g;
+  data = data.replace(regex, "");
+  return data;
 }
 
 function getLazyLoadedImports(text, imports) {
@@ -59,7 +41,7 @@ export function removeImports(text, imports) {
 export function stringToNamedExps(imp) {
   // Trim the string and replace multiple spaces with single space
   imp = imp.trim().replace(/\s\s+/g, " ").split(" ");
-  return imp.length == 1
+  return imp.length === 1
     ? { namedExp: imp[0] }
     : { namedExp: imp[0], alias: imp[2] };
 }
