@@ -2,18 +2,27 @@
 
 // Remove comments present in file
 export function removeComments(data) {
-  // Regex to find single line comments - Starts with //
-  let regex = /\/\/.*/g;
-  // Replace these comments with empty string
-  data = data.replace(regex, "");
+  let dataWithoutComments = "";
+  let commented = 0;
+  let prevCharacter = "";
 
-  // Regex to find multi-line comments
-  // Starts with /* and ends with */
-  regex = /\/\*(\s|.|\r\n)*?\*\//gm;
-  // Replace these comments with empty string
-  data = data.replace(regex, "");
+  for (let character of data) {
+    if (!commented) {
+      if (prevCharacter === "/" && character === "/") commented = 1; //Beginning of single line comments.
+      if (prevCharacter === "/" && character === "*") commented = 2; //Beginning of multi line comments.
+    } else {
+      if (prevCharacter === "\r" && character === "\n" && commented === 1)
+        commented = 0; //Ending of single line comments.
+      if (prevCharacter === "*" && character === "/" && commented === 2)
+        commented = 0; //Ending of single line comments.
+    }
 
-  return data;
+    if (!commented) dataWithoutComments += character;
+
+    prevCharacter = character;
+  }
+
+  return dataWithoutComments;
 }
 
 // Remove single file imports and existing dynamic imports
@@ -28,8 +37,10 @@ export function removeImports(text) {
 
 export function stringToNamedExps(imp) {
   // Trim the string and replace multiple spaces with single space
-  imp = imp.trim().replace(/\s\s+/g, ' ').split(" ");
-  return imp.length == 1 ? {namedExp: imp[0]} : {namedExp: imp[0], alias: imp[2]};
+  imp = imp.trim().replace(/\s\s+/g, " ").split(" ");
+  return imp.length == 1
+    ? { namedExp: imp[0] }
+    : { namedExp: imp[0], alias: imp[2] };
 }
 
 // Get named exports section from an import statement
@@ -55,7 +66,10 @@ export function getNamedExps(stmt) {
 export function getDefaultExp(stmt) {
   // Default export is preceded by either "import" or ","
   // and succeeded by either "," or "from"
-  let defaultExp = new RegExp("(import|,)((\r\n|\\s)*?)?(\\w*)((\r\n|\\s)*?)?(,|from)", "gm");
+  let defaultExp = new RegExp(
+    "(import|,)((\r\n|\\s)*?)?(\\w*)((\r\n|\\s)*?)?(,|from)",
+    "gm"
+  );
   defaultExp = defaultExp.exec(stmt);
 
   if (defaultExp)
@@ -72,7 +86,10 @@ export function getDefaultExp(stmt) {
 export function getNamespaceExp(stmt) {
   // Namespace export contains "* as". It can
   // be succeeded by either a "," or "from"
-  let namespaceExp = new RegExp("\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)", "gm");
+  let namespaceExp = new RegExp(
+    "\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)",
+    "gm"
+  );
   namespaceExp = namespaceExp.exec(stmt);
 
   if (namespaceExp)
@@ -97,17 +114,18 @@ export function importToObj(imp) {
   let namespaceExp = getNamespaceExp(stmt);
 
   return {
-    import: stmt,         // Import statement
-    defaultExp,           // Default export present in the import statement
+    import: stmt, // Import statement
+    defaultExp, // Default export present in the import statement
     namedExps: namedExps, // Named exports present in the import statement
-    namespaceExp,         // Namespace export present in the import statement
-    module                // Name of module from which import is happening
+    namespaceExp, // Namespace export present in the import statement
+    module, // Name of module from which import is happening
   };
 }
 
 // Get an array of import objects for each import statement in the code
 export function getImports(code) {
-  let imports = [], match;
+  let imports = [],
+    match;
   // Remove comments from the code
   //code = removeComments(code);
   // Remove single file imports and existing dynamic imports
