@@ -5,7 +5,12 @@ import { getImports } from "./parseImports.js";
 
 const rootPath = path.resolve(process.argv[2]),
   writePath = process.argv[3] || "data.json";
-  const ignore_dirs = ["node_modules", ".git", "build", "scripts", "data.json"].map((folder) => path.join(rootPath, folder));
+const ignore_dirs = ["node_modules", ".git", "build", "scripts", "data.json"].map((folder) => path.join(rootPath, folder));
+
+if(fs.existsSync('.gitignore')){
+  console.log('.gitignore file exists');
+}
+
 let data = {
   rootPath,
 };
@@ -64,7 +69,7 @@ function addFile(filePath) {
           toBeLazyLoaded = true;
         else if (imp.namedExps) {
           for (let namedImp of imp.namedExps) {
-            if((namedImp.alias !== undefined && namedImp.alias === comp) || namedImp.namedExp === comp){
+            if((namedImp.alias !== undefined && namedImp.alias === comp) || (namedImp.alias === undefined && namedImp.namedExp === comp)){
               toBeLazyLoaded = true;
               break
             } 
