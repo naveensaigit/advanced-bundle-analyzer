@@ -1,23 +1,26 @@
 import fs from "fs";
-import { removeComments } from "./utils.js";
+import { removeComments } from "./utils";
 
-export function getComponents(filePath) {
-  let data = fs.readFileSync(filePath, "utf8");
+export function getComponents(filePath : string) : string[]{
+  let data : string = fs.readFileSync(filePath, "utf8");
 
-  const components = [];
+  let components: string[] = [];
 
   data = removeComments(data);
 
-  let possibleRoutes = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
+  type RegEx = RegExpMatchArray | null;
+
+  let possibleRoutes : RegEx = data.match(/<Route\s((\s|.|\r\n)*?)?(<\/|\/>)/gm);
   //possibleRoutes holds all the statements that start with a Route tag.
 
   if (!possibleRoutes) return [];
+  let possibleComponent : RegEx;
 
   for (let currentRoute of possibleRoutes) {
     if (!/component/.test(currentRoute) && !/element/.test(currentRoute)) {
       //If the currentRoute does not contain any component/element keyword.
 
-      let possibleComponent = currentRoute.match(/>((\s|.|\r\n)*?)?\/>/gm); //Refine route statement to get possible component name by removing the route tag.
+      possibleComponent = currentRoute.match(/>((\s|.|\r\n)*?)?\/>/gm); //Refine route statement to get possible component name by removing the route tag.
       if (!possibleComponent) continue; //If no component is present in current route statement, continue to next route statement.
 
       possibleComponent = possibleComponent[0].match(/<((\s|.|\r\n)*?)?\/>/gm); //Remove any component path details, if present.
@@ -33,7 +36,7 @@ export function getComponents(filePath) {
       continue;
     }
 
-    let possibleComponent = currentRoute.match(/component((\s|.|\r\n)*?)?}/gm); //Remove Route tag & any component path details, if present.
+    possibleComponent  = currentRoute.match(/component((\s|.|\r\n)*?)?}/gm); //Remove Route tag & any component path details, if present.
 
     if (possibleComponent) {
       //If the currentRoute contains component keyword.
