@@ -5,7 +5,7 @@ let path = process.argv[2];
 
 let output = getInfoFolder(path);
 
-output = JSON.stringify(output);
+output = JSON.stringify(output, null,'\t');
 
 fs.writeFile("scripts/data.json", output, (err) => {
   if (err) {
