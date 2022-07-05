@@ -36,12 +36,12 @@ export function getComponents(filePath : string) : string[]{
       continue;
     }
 
-    possibleComponent  = currentRoute.match(/component((\s|.|\r\n)*?)?}/gm); //Remove Route tag & any component path details, if present.
+    possibleComponent  = currentRoute.match(/component((\s|.|\r\n)*?)?}/gm); //Remove '<Route' tag & any component path details, if present.
 
     if (possibleComponent) {
       //If the currentRoute contains component keyword.
 
-      possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm); //Remove component word that is present before component name.
+      possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm); //Remove 'component' word that is present before component name.
       if (!possibleComponent) continue;
 
       possibleComponent = possibleComponent[0].match(/\w(.)*/gm);
@@ -54,10 +54,10 @@ export function getComponents(filePath : string) : string[]{
     } else {
       //If the currentRoute contains element keyword.
 
-      possibleComponent = currentRoute.match(/element((\s|.|\r\n)*)/gm); //Remove Route tag & any component path details, if present.
+      possibleComponent = currentRoute.match(/element((\s|.|\r\n)*)/gm); //Remove '<Route' tag & any component path details, if present.
       if (!possibleComponent) continue;
 
-      possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm); //Remove element word that is present before component name.
+      possibleComponent = possibleComponent[0].match(/{((\s|.|\r\n)*)/gm); //Remove 'element' word that is present before component name.
       if (!possibleComponent) continue;
 
       possibleComponent = possibleComponent[0].match(/\w(.)*/gm);
