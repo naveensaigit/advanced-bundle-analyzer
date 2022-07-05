@@ -1,10 +1,14 @@
+import fs from "fs";
+
 export function removeComments(data) {
   let regex = /\/\/.*|\/\*[^]*\*\//g;
   data = data.replace(regex, "");
   return data;
 }
 
-export function getComponents(data) {
+export function getComponents(filePath) {
+  let data = fs.readFileSync(filePath, "utf8");
+
   const components = [];
 
   data = removeComments(data);
