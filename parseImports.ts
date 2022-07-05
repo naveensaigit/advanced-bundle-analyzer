@@ -136,16 +136,16 @@ function getNamespaceImp(stmt: string): String | null {
   return null;
 }
 
-type returnImportToObj = {
-  import: string,
-  defaultImp: string | null,
-  namedImps: stringToNamedImp[] | null,
-  namespaceImp: String | null,
-  module: RegExpMatchArray | null
+type imports = {
+  import: string;
+  defaultImp: string | null;
+  namedImps: stringToNamedImp[] | null;
+  namespaceImp: String | null;
+  module: RegExpMatchArray | null;
 } | null;
 
 // Convert import statement to an object
-function importToObj(imp: RegExpExecArray): returnImportToObj {
+function importToObj(imp: RegExpExecArray): imports {
   if (!imp) return null;
 
   let module = imp[3].match(/('|")(.*)('|")/gm);
@@ -170,14 +170,6 @@ function importToObj(imp: RegExpExecArray): returnImportToObj {
     module, // Name of module from which import is happening
   };
 }
-
-type imports = {
-  import: string;
-  defaultImp: string | null;
-  namedImps: stringToNamedImp[] | null;
-  namespaceImp: String | null;
-  module: RegExpMatchArray | null;
-} | null;
 
 type returnGetImports = {
   imports: imports[];
