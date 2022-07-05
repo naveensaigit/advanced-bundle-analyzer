@@ -44,7 +44,7 @@ function getInitData(name, entryPath, isFile = true) {
 }
 
 function addFile(filePath) {
-  let fileData = getInitData(filePath.substring(filePath.lastIndexOf('/') + 1), filePath);
+  let fileData = getInitData(filePath.substring(filePath.lastIndexOf('\\') + 1), filePath);
   let components = getComponents(filePath), folderPath = path.dirname(filePath);
 
   fileData.size = fs.statSync(filePath).size;
@@ -90,7 +90,7 @@ function addFile(filePath) {
 }
 
 function walk(dir, callback) {
-  let dirData = getInitData(dir.substring(dir.lastIndexOf('/') + 1), dir, false);
+  let dirData = getInitData(dir.substring(dir.lastIndexOf('\\') + 1), dir, false);
 
   let entries = fs.readdirSync(dir, { withFileTypes: true });
 
