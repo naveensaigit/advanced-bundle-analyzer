@@ -200,7 +200,7 @@ export function getImports(filePath: string): returnGetImports {
     match = reg.exec(code);
     if (match) {
       // Convert the import statement into an object
-      let importObj: returnImportToObj = importToObj(match);
+      let importObj: imports = importToObj(match);
       imports.push(importObj);
     }
   } while (match);
