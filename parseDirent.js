@@ -11,16 +11,19 @@ function getKeyValueFile(
   canBeLazyLoaded,
   parentDirectory
 ) {
-  return `
-  "${filePath}": {
-    "name": "${name}",
-    "path": "${filePath}",
-    "size": ${size},
-    "type": "${type}",
-    "alreadyLazyLoaded": [${alreadyLazyLoaded}],
-    "canBeLazyLoaded": [${canBeLazyLoaded}],
-    "parentFolder": "${parentDirectory}"
-  },`;
+  const obj = {
+    [filePath]: {
+      name: name,
+      path: filePath,
+      size: size,
+      type: type,
+      alreadyLazyLoaded: alreadyLazyLoaded,
+      canBeLazyLoaded: canBeLazyLoaded,
+      parentFolder: parentDirectory,
+    },
+  };
+
+  return obj;
 }
 
 function getKeyValueFolder(
@@ -35,26 +38,22 @@ function getKeyValueFolder(
   filesInside,
   parentDirectory
 ) {
-  let foldersInsideString = foldersInside.join('", "');
-  let filesInsideString = filesInside.join('", "');
+  const obj = {
+    [path]: {
+      name: name,
+      path: path,
+      size: size,
+      noOfSubFolders: noOfSubFolders,
+      noOfSubFiles: noOfSubFiles,
+      alreadyLazyLoaded: alreadyLazyLoaded,
+      canBeLazyLoaded: canBeLazyLoaded,
+      foldersInside: foldersInside,
+      filesInside: filesInside,
+      parentFolder: parentDirectory,
+    },
+  };
 
-  if (foldersInside.length)
-    foldersInsideString = '"' + foldersInsideString + '"';
-  if (filesInside.length) filesInsideString = '"' + filesInsideString + '"';
-
-  return `
-  "${path}": {
-    "name": "${name}",
-    "path": "${path}",
-    "size": ${size},
-    "noOfSubFolders": ${noOfSubFolders},
-    "noOfSubFiles": ${noOfSubFiles},
-    "alreadyLazyLoaded": ${alreadyLazyLoaded},
-    "canBeLazyLoaded": ${canBeLazyLoaded},
-    "foldersInside": [${foldersInsideString}],
-    "filesInside": [${filesInsideString}],
-    "parentFolder": "${parentDirectory}"
-  },`;
+  return obj;
 }
 
 function getLazyLoaded(
@@ -69,7 +68,7 @@ function getLazyLoaded(
         canBeLazyLoaded.push({ name: component, module: importLine.module });
         break;
       }
-      if (component === importLine.lazyExp) {
+      if (component === importLine.lazyImp) {
         alreadyLazyLoaded.push({ name: component, module: importLine.module });
         break;
       }
@@ -78,25 +77,24 @@ function getLazyLoaded(
 }
 
 function modify(loaded, filePath) {
-  loaded = loaded.map((component) => {
+  const obj = loaded.map((component) => {
     let parentFolder = "";
     if (component.module[1] === ".") {
       parentFolder = `"${filePath.substr(0, filePath.lastIndexOf("/"))}`;
       component.module = component.module.substr(2, component.module.length);
     }
 
-    return `
-      {
-        "name": "${component.name}",
-        "path": ${parentFolder}${component.module}
-      }`;
+    let path = parentFolder + component.module;
+
+    const nestedObj = {
+      name: component.name,
+      path: path.slice(1, -1),
+    };
+
+    return nestedObj;
   });
 
-  loaded = loaded.join(",");
-
-  if (loaded.length) loaded += "\r\n    ";
-
-  return loaded;
+  return obj;
 }
 
 export function parseFile(filePath) {
@@ -162,7 +160,8 @@ function getInfo(path, parentDirectory) {
     size += folderInfo.size;
     noOfSubFiles += folderInfo.noOfSubFiles;
     noOfSubFolders += folderInfo.noOfSubFolders + 1;
-    output += folderInfo.output;
+
+    output = Object.assign(output, folderInfo.output);
   }
 
   let KeyValue = getKeyValueFolder(
@@ -178,7 +177,7 @@ function getInfo(path, parentDirectory) {
     parentDirectory
   );
 
-  output += "\r\n" + KeyValue;
+  output = Object.assign(output, KeyValue);
 
   return {
     noOfSubFiles,
@@ -193,11 +192,6 @@ function getInfo(path, parentDirectory) {
 export function getInfoFolder(path) {
   let output = getInfo(path, "/").output;
 
-  output = output.slice(5, -1);
-  output = `{
-  ${output}
-}`;
-
   return output;
 }
 
@@ -205,7 +199,7 @@ export function getInfoFiles(files, parentDirectory, filesInside) {
   let totalSize = 0;
   let totalAlreadyLazy = 0;
   let totalCanBeLazy = 0;
-  let output = "";
+  let output = {};
 
   for (let file of files) {
     let filePath = parentDirectory + "/" + file;
@@ -240,7 +234,7 @@ export function getInfoFiles(files, parentDirectory, filesInside) {
       parentDirectory
     );
 
-    output += "\r\n" + KeyValue;
+    output = Object.assign(output, KeyValue);
     filesInside.push(filePath);
   }
 
