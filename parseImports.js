@@ -1,19 +1,12 @@
-// Parsing import statements in a file
 import fs from "fs";
-
-// Remove comments present in file
-export function removeComments(data) {
-  let regex = /\/\/.*|\/\*[^]*\*\//g;
-  data = data.replace(regex, "");
-  return data;
-}
+import { preprocess, removeComments } from "./utils.js";
 
 // Function to get lazy imports and then remove them from code
 function getLazyImports(code) {
-  // let reg = new RegExp(
-  //   "(var|let|const|,)\\s*((.|\r\n)*?)\\s*=\\s*(.|\r\n)*?\\s*import\\s*(.|\r\n)*?\\s*\\(((.|\r\n|\\s)*?)\\)",
-  //   "gm"
-  // );
+  // Lazy import is of the form -
+  //    keyword varName = lazyFunc(() => import("module"))
+  // where keyword can be var, let, const or , (multiple declarations in same line)
+  // varName is a valid JavaScript variable containing alphanumeric, $ and _ chars
   let reg = new RegExp(
     "(var|let|const|,)(\\s|\r\n)+(([a-zA-Z]|$|_)([a-zA-Z]|$|_|[0-9])*)(\\s|\r\n)*=\\s*(.|\r\n)*?\\s*import\\s*(.|\r\n)*?\\s*\\(((.|\r\n|\\s)*?)\\)",
     "gm"
@@ -27,7 +20,7 @@ function getLazyImports(code) {
     if (match) {
       // Convert the import statement into an object
       let importLine = match[0], lazyImp = match[3], module = match[9].slice(1, -1);
-      // Remove this existing dynamic imports
+      // Remove this existing dynamic imports from the code
       newcode = newcode.replace(importLine, "");
       // Add the dynamic import
       lazyImps.push({
@@ -39,27 +32,29 @@ function getLazyImports(code) {
     }
   } while (match);
 
+  // Return the new code and list of lazy imports
   return {newcode, lazyImps};
 }
 
 // Remove single file imports
-export function removeImports(text) {
+function removeImports(text) {
   // Remove file import - import "filename";
   let reg = /import((\r\n|\s)*?)?('|")(.*)('|");/gm;
   // Replace these imports with empty string
   return text.replace(reg, "");
 }
 
-export function stringToNamedImps(imp) {
+// Convert "NamedImp as Alias" => {namedImp, alias}
+function stringToNamedImps(imp) {
   // Trim the string and replace multiple spaces with single space
-  imp = imp.trim().replace(/\s\s+/g, " ").split(" ");
+  imp = preprocess(imp).split(" ");
   return imp.length === 1
     ? { namedImp: imp[0] }
     : { namedImp: imp[0], alias: imp[2] };
 }
 
 // Get named imports section from an import statement
-export function getNamedImps(stmt) {
+function getNamedImps(stmt) {
   // Named imports section is enclosed within { ... }
   let namedImps = new RegExp("{((.|\r\n|\\s)*?)}", "gm");
   namedImps = namedImps.exec(stmt);
@@ -78,7 +73,7 @@ export function getNamedImps(stmt) {
 }
 
 // Get default import from an import statement
-export function getDefaultImp(stmt) {
+function getDefaultImp(stmt) {
   // Default import is preceded by either "import" or ","
   // and succeeded by either "," or "from"
   let defaultImp = new RegExp(
@@ -91,14 +86,14 @@ export function getDefaultImp(stmt) {
     // Taking the fourth element to get the fourth group
     // from regex which contains the default import
 
-    // Remove trailing whitespaces and remove newlines
-    defaultImp = defaultImp[4].trim().replaceAll("\n", "");
+    // Remove trailing whitespaces and newlines
+    defaultImp = preprocess(defaultImp[4]);
 
   return defaultImp;
 }
 
 // Get namespace import from an import statement
-export function getNamespaceImp(stmt) {
+function getNamespaceImp(stmt) {
   // Namespace import contains "* as". It can
   // be succeeded by either a "," or "from"
   let namespaceImp = new RegExp(
@@ -111,14 +106,14 @@ export function getNamespaceImp(stmt) {
     // Taking the fifth element to get the fifth group
     // from regex which contains the namespace import
 
-    // Remove trailing whitespaces and remove newlines
-    namespaceImp = namespaceImp[5].trim().replaceAll("\n", "");
+    // Remove trailing whitespaces and newlines
+    namespaceImp = preprocess(namespaceImp[5]);
 
   return namespaceImp;
 }
 
 // Convert import statement to an object
-export function importToObj(imp) {
+function importToObj(imp) {
   let module = imp[3].match(/('|")(.*)('|")/gm)[0].slice(1, -1);
   let stmt = imp[0];
 
@@ -141,7 +136,6 @@ export function importToObj(imp) {
 export function getImports(filePath) {
   // Read the file contents
   const oldcode = fs.readFileSync(filePath, "utf8");
-
   // Get Lazy loaded imports and remove them from code
   let {newcode: code, lazyImps} = getLazyImports(oldcode);
   // Declaring variables to store ordinary imports and regex matches
