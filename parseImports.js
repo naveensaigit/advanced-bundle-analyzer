@@ -50,71 +50,71 @@ export function removeImports(text) {
   return text.replace(reg, "");
 }
 
-export function stringToNamedExps(imp) {
+export function stringToNamedImps(imp) {
   // Trim the string and replace multiple spaces with single space
   imp = imp.trim().replace(/\s\s+/g, " ").split(" ");
   return imp.length === 1
-    ? { namedExp: imp[0] }
-    : { namedExp: imp[0], alias: imp[2] };
+    ? { namedImp: imp[0] }
+    : { namedImp: imp[0], alias: imp[2] };
 }
 
-// Get named exports section from an import statement
-export function getNamedExps(stmt) {
-  // Named exports section is enclosed within { ... }
-  let namedExps = new RegExp("{((.|\r\n|\\s)*?)}", "gm");
-  namedExps = namedExps.exec(stmt);
+// Get named imports section from an import statement
+export function getNamedImps(stmt) {
+  // Named imports section is enclosed within { ... }
+  let namedImps = new RegExp("{((.|\r\n|\\s)*?)}", "gm");
+  namedImps = namedImps.exec(stmt);
 
-  if (namedExps) {
+  if (namedImps) {
     // Taking the second element to get the second group from
     // regex which contains the contents inside { ... }
 
-    // Split string by , to get each export individually
-    namedExps = namedExps[1].split(",");
+    // Split string by , to get each import individually
+    namedImps = namedImps[1].split(",");
     // Convert the string into an object
-    namedExps = namedExps.map(stringToNamedExps);
+    namedImps = namedImps.map(stringToNamedImps);
   }
 
-  return namedExps;
+  return namedImps;
 }
 
-// Get default export from an import statement
-export function getDefaultExp(stmt) {
-  // Default export is preceded by either "import" or ","
+// Get default import from an import statement
+export function getDefaultImp(stmt) {
+  // Default import is preceded by either "import" or ","
   // and succeeded by either "," or "from"
-  let defaultExp = new RegExp(
+  let defaultImp = new RegExp(
     "(import|,)((\r\n|\\s)*?)?(\\w*)((\r\n|\\s)*?)?(,|from)",
     "gm"
   );
-  defaultExp = defaultExp.exec(stmt);
+  defaultImp = defaultImp.exec(stmt);
 
-  if (defaultExp)
+  if (defaultImp)
     // Taking the fourth element to get the fourth group
-    // from regex which contains the default export
+    // from regex which contains the default import
 
     // Remove trailing whitespaces and remove newlines
-    defaultExp = defaultExp[4].trim().replaceAll("\n", "");
+    defaultImp = defaultImp[4].trim().replaceAll("\n", "");
 
-  return defaultExp;
+  return defaultImp;
 }
 
-// Get namespace export from an import statement
-export function getNamespaceExp(stmt) {
-  // Namespace export contains "* as". It can
+// Get namespace import from an import statement
+export function getNamespaceImp(stmt) {
+  // Namespace import contains "* as". It can
   // be succeeded by either a "," or "from"
-  let namespaceExp = new RegExp(
+  let namespaceImp = new RegExp(
     "\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)",
     "gm"
   );
-  namespaceExp = namespaceExp.exec(stmt);
+  namespaceImp = namespaceImp.exec(stmt);
 
-  if (namespaceExp)
+  if (namespaceImp)
     // Taking the fifth element to get the fifth group
-    // from regex which contains the namespace export
+    // from regex which contains the namespace import
 
     // Remove trailing whitespaces and remove newlines
-    namespaceExp = namespaceExp[5].trim().replaceAll("\n", "");
+    namespaceImp = namespaceImp[5].trim().replaceAll("\n", "");
 
-  return namespaceExp;
+  return namespaceImp;
 }
 
 // Convert import statement to an object
@@ -122,17 +122,17 @@ export function importToObj(imp) {
   let module = imp[3].match(/('|")(.*)('|")/gm)[0].slice(1, -1);
   let stmt = imp[0];
 
-  let namedExps = getNamedExps(stmt);
+  let namedImps = getNamedImps(stmt);
 
-  let defaultExp = getDefaultExp(stmt);
+  let defaultImp = getDefaultImp(stmt);
 
-  let namespaceExp = getNamespaceExp(stmt);
+  let namespaceImp = getNamespaceImp(stmt);
 
   return {
     import: stmt, // Import statement
-    defaultExp, // Default export present in the import statement
-    namedExps: namedExps, // Named exports present in the import statement
-    namespaceExp, // Namespace export present in the import statement
+    defaultImp, // Default import present in the import statement
+    namedImps: namedImps, // Named imports present in the import statement
+    namespaceImp, // Namespace import present in the import statement
     module, // Name of module from which import is happening
   };
 }
