@@ -129,6 +129,4 @@ function walk(dir, callback) {
 
 walk(rootPath);
 data["/"].parentFolder = "/";
-fs.writeFile(writePath, JSON.stringify(data, undefined, 2), (e) =>
-  e ? console.log(e) : ""
-);
+fs.writeFile(writePath, JSON.stringify(data, undefined, 2), (e) => e ? console.log(e) : "" );
