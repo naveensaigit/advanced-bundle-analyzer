@@ -51,7 +51,7 @@ const ignore_cmd: string = "git ls-files -o -i --exclude-standard --directory";
 // Some folders and files which may not be present in .gitignore
 let ignore_dirs: string[] = [".git", ".gitignore", "README.md", "scripts"];
 // Global data object
-let data: data = { rootPath };
+let dataObj: data = { rootPath };
 
 // Function to get all ignored folders and files present in .gitignore
 function parseGitignore(): string[] {
@@ -116,7 +116,7 @@ function addFile(filePath: string): fileData {
   // Get initial data for a file
   let fileData: fileData = getFileInitData(path.basename(filePath), filePath);
   // Get a list of components
-  let components: string[] = getComponents(filePath), folderPath = path.dirname(filePath);
+  const components: string[] = getComponents(filePath), folderPath = path.dirname(filePath);
   // Find the size of the file
   fileData.size = fs.statSync(filePath).size;
 
@@ -124,14 +124,14 @@ function addFile(filePath: string): fileData {
   if(components.length === 0) return fileData;
 
   // Get information about imports present in the file
-  let {lazyImps, imports} = getImports(filePath);
+  const {lazyImps, imports} = getImports(filePath);
 
   // Loop over the components
-  for(let comp of components) {
+  for(const comp of components) {
     let toBeLazyLoaded: boolean = false;
 
     // Loop over the import statements
-    for(let imp of imports) {
+    for(const imp of imports) {
 
       if(!imp)
         continue;
@@ -141,7 +141,7 @@ function addFile(filePath: string): fileData {
       if(comp === imp.defaultImp || comp === imp.namespaceImp)
         toBeLazyLoaded = true;
 
-      for(let namedImp of imp.namedImps || []) {
+      for(const namedImp of imp.namedImps || []) {
         // If component matches a named import, it can be lazy loaded
         if((namedImp.alias !== undefined && namedImp.alias === comp) ||
         (namedImp.alias === undefined && namedImp.namedImp === comp)) {
@@ -153,7 +153,7 @@ function addFile(filePath: string): fileData {
       // Component found in an import statement
       if(toBeLazyLoaded) {
         // Find path of the component relative to root path
-        let relImpPath: string = relPath(path.resolve(folderPath, imp.module));
+        const relImpPath: string = relPath(path.resolve(folderPath, imp.module));
         // Add this component to the list of all components that can be lazy loaded
         fileData.canBeLazyLoaded.push({name: comp, path: relImpPath});
         break;
@@ -164,11 +164,11 @@ function addFile(filePath: string): fileData {
     if(toBeLazyLoaded) continue;
 
     // Loop over all dynamic / lazy imports
-    for(let lazyImp of lazyImps) {
+    for(const lazyImp of lazyImps) {
       // Check if component is being imported
       if(comp === lazyImp.lazyImp) {
         // Find path of the component relative to root path
-        let relImpPath = relPath(path.resolve(folderPath, lazyImp.module));
+        const relImpPath = relPath(path.resolve(folderPath, lazyImp.module));
         // Add this component to the list of all components that have been lazy loaded
         fileData.totalLazyLoaded.push({name: comp, path: relImpPath});
         break;
@@ -184,11 +184,11 @@ function walk(dir: string): folderData {
   let dirData: folderData = getFolderInitData(path.basename(dir), dir);
 
   // Get all directory entries present in the folder
-  let entries: fs.Dirent[] = fs.readdirSync(dir, { withFileTypes: true });
+  const entries: fs.Dirent[] = fs.readdirSync(dir, { withFileTypes: true });
 
   entries.forEach(function (dirent: fs.Dirent): void {
     // Get name of directory entry
-    let entry: string = dirent.name;
+    const entry: string = dirent.name;
     // Construct path of this entry
     const entryPath: string = path.join(dir, entry);
 
@@ -199,13 +199,12 @@ function walk(dir: string): folderData {
     // Entry is a folder
     if (dirent.isDirectory()) {
       // Recursively traverse this folder
-      let recData: folderData = walk(entryPath);
+      const recData: folderData = walk(entryPath);
 
       // Add the properties of subfolders to current folder's data
-      let properties: string[] = ["size", "noOfSubFolders", "noOfSubFiles", "totalLazyLoaded", "canBeLazyLoaded"];
-      for(let property of properties)
-        if(typeof(dirData[property]) == "number" && typeof(recData[property]) == "number")
-          dirData[property] += recData[property];
+      const properties: string[] = ["size", "noOfSubFolders", "noOfSubFiles", "totalLazyLoaded", "canBeLazyLoaded"];
+      for(const property of properties)
+        dirData[property] += recData[property];
 
       // Increment the count of sub-folders
       dirData.noOfSubFolders++;
@@ -215,9 +214,9 @@ function walk(dir: string): folderData {
     // Entry is a file
     else if (dirent.isFile()) {
       // Get data of the file
-      let recData = addFile(entryPath);
+      const recData = addFile(entryPath);
       // Add this data to the global data
-      data[relPath(entryPath)] = recData;
+      dataObj[relPath(entryPath)] = recData;
 
       // Add the properties of subfolders to current folder's data
       dirData.size += recData.size;
@@ -229,7 +228,7 @@ function walk(dir: string): folderData {
   });
 
   // Add data of current folder to the global data
-  data[relPath(dir)] = dirData;
+  dataObj[relPath(dir)] = dirData;
   return dirData;
 }
 
@@ -238,10 +237,10 @@ function main(): void {
   // Start traversing from root path
   walk(rootPath);
   // Link root folder to itself
-  if(typeof(data["/"]) != "string")
-    data["/"].parentFolder = "/";
+  if(typeof(dataObj["/"]) != "string")
+    dataObj["/"].parentFolder = "/";
   // Write the data into output file
-  fs.writeFile(writePath, JSON.stringify(data, undefined, 2), e => e ? console.log(e) : "");
+  fs.writeFile(writePath, JSON.stringify(dataObj, undefined, 2), e => e ? console.log(e) : "");
 }
 
 main();
