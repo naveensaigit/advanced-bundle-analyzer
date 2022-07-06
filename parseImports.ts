@@ -141,7 +141,7 @@ type imports = {
   defaultImp: string | null;
   namedImps: stringToNamedImp[] | null;
   namespaceImp: String | null;
-  module: RegExpMatchArray | null;
+  module: string;
 } | null;
 
 // Convert import statement to an object
@@ -167,7 +167,7 @@ function importToObj(imp: RegExpExecArray): imports {
     defaultImp, // Default import present in the import statement
     namedImps: namedImps, // Named imports present in the import statement
     namespaceImp, // Namespace import present in the import statement
-    module, // Name of module from which import is happening
+    module : moduleStr, // Name of module from which import is happening
   };
 }
 
