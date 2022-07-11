@@ -38,10 +38,9 @@ type folderData = {
 }
 
 // Type for global data object
-// "rootPath" - string
 // "entry" - fileData or folderData
 type data = {
-  [key: string]: string | fileData | folderData
+  [key: string]: fileData | folderData
 }
 
 // Path of root folder
@@ -51,7 +50,7 @@ const ignore_cmd: string = "git ls-files -o -i --exclude-standard --directory";
 // Some folders and files which may not be present in .gitignore
 let ignore_dirs: string[] = [".git", ".gitignore", "README.md", "scripts"];
 // Global data object
-let dataObj: data = { rootPath };
+let dataObj: data = { rootPath: getFileInitData("rootPath", rootPath) };
 
 // Function to get all ignored folders and files present in .gitignore
 function parseGitignore(): string[] {
@@ -237,8 +236,7 @@ function main(): void {
   // Start traversing from root path
   walk(rootPath);
   // Link root folder to itself
-  if(typeof(dataObj["/"]) != "string")
-    dataObj["/"].parentFolder = "/";
+  dataObj["/"].parentFolder = "/";
   // Write the data into output file
   fs.writeFile(writePath, JSON.stringify(dataObj, undefined, 2), e => e ? console.log(e) : "");
 }
