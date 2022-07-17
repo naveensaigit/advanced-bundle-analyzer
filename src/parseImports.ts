@@ -113,7 +113,7 @@ function getDefaultImp(stmt: string): string | null {
 }
 
 // Get namespace import from an import statement
-function getNamespaceImp(stmt: string): String | null {
+function getNamespaceImp(stmt: string): string | null {
   // Namespace import contains "* as". It can
   // be succeeded by either a "," or "from"
   let namespaceImpRegEx: RegExp = new RegExp(
@@ -129,7 +129,7 @@ function getNamespaceImp(stmt: string): String | null {
     // from regex which contains the namespace import
 
     // Remove trailing whitespaces and newlines
-    let namespaceImpStr: String = preprocess(namespaceImp[5].toString());
+    let namespaceImpStr: string = preprocess(namespaceImp[5].toString());
     return namespaceImpStr;
   }
 
@@ -140,7 +140,7 @@ type imports = {
   import: string;
   defaultImp: string | null;
   namedImps: stringToNamedImp[] | null;
-  namespaceImp: String | null;
+  namespaceImp: string | null;
   module: string;
 } | null;
 
@@ -160,7 +160,7 @@ function importToObj(imp: RegExpExecArray): imports {
 
   let defaultImp: string | null = getDefaultImp(stmt);
 
-  let namespaceImp: String | null = getNamespaceImp(stmt);
+  let namespaceImp: string | null = getNamespaceImp(stmt);
 
   return {
     import: stmt, // Import statement
@@ -171,7 +171,7 @@ function importToObj(imp: RegExpExecArray): imports {
   };
 }
 
-type returnGetImports = {
+export type returnGetImports = {
   imports: imports[];
   lazyImps: lazyImp[];
 }
