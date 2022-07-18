@@ -7,18 +7,12 @@ import { returnGetImports } from './parseImports';
 type componentInfo = {
   name: string,
   filePath: string,
-  childComponents: string
+  childComponents: string[]
 };
 
 type renderTreeType = {
   [key: string]: componentInfo      // Key's structure -> 'path_of_file_where_is_defined:component_name'.
 };
-
-// Type to store the components in totalLazyLoaded, canBeLazyLoaded & alreadyLazyLoaded.
-type component = {
-  name: string,
-  path: string
-}
 
 // Information stored for a file.
 type fileData = {
@@ -26,9 +20,9 @@ type fileData = {
   path: string,
   size: number,
   type: string,
-  alreadyLazyLoaded: component[],
-  canBeLazyLoaded: component[],
-  canNotBeLazyLoaded: component[]
+  alreadyLazyLoaded: string[],
+  canBeLazyLoaded: string[],
+  canNotBeLazyLoaded: string[]
 }
 
 type outputObject = {
@@ -95,35 +89,23 @@ function dfs(node: string): void {
       
       // If the component is being imported as a default import.
       if (imp.defaultImp) {
-        fileData.canBeLazyLoaded.push({
-          "name": imp.defaultImp,
-          "path": importModulePath
-        });
+        fileData.canBeLazyLoaded.push(importModulePath+':'+imp.defaultImp);
       }
 
       // If the component is being imported as namespace import.
       if (imp.namespaceImp) {
-        fileData.canBeLazyLoaded.push({
-          "name": imp.namespaceImp,
-          "path": importModulePath
-        });
+        fileData.canBeLazyLoaded.push(importModulePath+':'+imp.namespaceImp);
       }
 
       // Getting components from named import
       for (let namedImp of imp.namedImps || []) {
         if (namedImp.alias !== undefined) {
-          fileData.canBeLazyLoaded.push({
-            "name": namedImp.alias,
-            "path": importModulePath
-          });
+          fileData.canBeLazyLoaded.push(importModulePath+':'+namedImp.alias);
         }
 
         // Getting components from named import.
         if (namedImp.alias === undefined && namedImp.namedImp !== undefined) {
-          fileData.canBeLazyLoaded.push({
-            "name": namedImp.namedImp,
-            "path": importModulePath
-          });
+          fileData.canBeLazyLoaded.push(importModulePath+':'+namedImp.namedImp);
         }
       }
     }
@@ -146,10 +128,7 @@ function dfs(node: string): void {
 
           importModulePath = importModulePath.replaceAll('\\', '/');
 
-        fileData.alreadyLazyLoaded.push({
-          "name": lazyImp.lazyImp,
-          "path": importModulePath
-        });
+        fileData.alreadyLazyLoaded.push(importModulePath+':'+lazyImp.lazyImp);
       }
     }
 
@@ -157,28 +136,21 @@ function dfs(node: string): void {
   }
 
   // loop over all the child component of the current component, that are present in the render tree.
-  for (let childComponent of renderTree[filePath].childComponents) {
-    //Object representation for the current childComponent.
-    let obj: component = {
-      name: childComponent.slice(childComponent.lastIndexOf(':') + 1, childComponent.length),
-      path: childComponent.slice(0, childComponent.lastIndexOf(':'))
-    };
-
-    if (dataObject[filePath].canBeLazyLoaded.indexOf(obj) !== -1) {
+  for (let childComponent of renderTree[node].childComponents) {
+   
+    if (dataObject[filePath].canBeLazyLoaded.indexOf(childComponent) !== -1) {
       //If the current child component is rendered we remove it from can be lazy loaded for the current file (in which the parent component resides).
-      let index: number = dataObject[filePath].canBeLazyLoaded.indexOf(obj);
-      dataObject[filePath].canNotBeLazyLoaded.push(obj);
-      dataObject[filePath].canBeLazyLoaded.splice(index, index);
+      let index: number = dataObject[filePath].canBeLazyLoaded.indexOf(childComponent);
+      dataObject[filePath].canNotBeLazyLoaded.push(childComponent);
+      dataObject[filePath].canBeLazyLoaded.splice(index, index+1);
     }
   }
 
   // calling dfs function for all the child components of the current component, that are present in the render tree.
-  for (let childComponent of renderTree[filePath].childComponents) {
+  for (let childComponent of renderTree[node].childComponents) {
     dfs(childComponent);
   }
-
-  console.log(dataObject);
 }
 
 // calling dfs function with 'path_of_where_root_component_is_definition:root_component_name', where root component represents the root node of render tree.
-dfs("C:/Users/Sprinklr/Desktop/practice/New folder/react-crypto-tracker/src/App.js:root");
+dfs('C:/Users/Sprinklr/Desktop/practice/New folder/react-crypto-tracker/src/App.js:App');
