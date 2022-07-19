@@ -1,5 +1,4 @@
 // Remove newlines, consecutive and trailing whitespaces
-
 export function preprocess(str: string): string {
   return str.trim().replace(/\s\s+/g, " ").toString().replaceAll("\n", "");
 }

@@ -89,12 +89,12 @@ function dfs(node: string): void {
       
       // If the component is being imported as a default import.
       if (imp.defaultImp) {
-        fileData.canBeLazyLoaded.push(importModulePath+':'+imp.defaultImp);
+        fileData.canBeLazyLoaded.push(importModulePath + ':' + imp.defaultImp.importedAs);
       }
 
       // If the component is being imported as namespace import.
       if (imp.namespaceImp) {
-        fileData.canBeLazyLoaded.push(importModulePath+':'+imp.namespaceImp);
+        fileData.canBeLazyLoaded.push(importModulePath + ':' + imp.namespaceImp);
       }
 
       // Getting components from named import

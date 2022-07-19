@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import { preprocess, removeComments } from "./utils.js";
 
 type lazyImp = { import: string; lazyImp: string; module: string };
@@ -112,6 +113,54 @@ function getDefaultImp(stmt: string): string | null {
   return null;
 }
 
+// Get name of default export from a file
+function getDefaultExp(filePath: string): string | null {
+  // Read the file contents
+  const oldcode: string = fs.readFileSync(filePath, "utf8");
+  let match: RegEx;
+
+  // Remove comments from the code
+  const code = removeComments(oldcode);
+
+  // Match "export default function name()"
+  const expDefFunc: RegExp = new RegExp(
+    "export((\r\n|\\s)*?)?default((\r\n|\\s)*?)?function((\r\n|\\s)*?)?((\r\n|\\s|.)*?)\\(",
+    "gm"
+  );
+
+  match = expDefFunc.exec(code);
+  if (match && match[7])
+    return preprocess(match[7]);
+
+  // Match "export default expression"
+  const expDef: RegExp = new RegExp(
+    "export((\r\n|\\s)*?)?default((\r\n|\\s)*?)?((\r\n|\\s)*)?([^\n;]*)",
+    "gm"
+  );
+
+  match = expDef.exec(code);
+  if (match && match[7])
+    return preprocess(match[7]);
+
+  // Match "export { name as default }"
+  const nameDef: RegExp = new RegExp(
+    "export((\r\n|\\s)*?)?{((\r\n|\\s|.)*)}",
+    "gm"
+  );
+
+  match = nameDef.exec(code);
+  if (!(match && match[3]))
+    return "";
+  const namedExps: string[] = preprocess(match[3]).split(",");
+  for(let namedExp of namedExps) {
+    const [name, exportedAs] = namedExp.split("as");
+    if(exportedAs.trim() === "default")
+      return name.trim();
+  }
+
+  return null;
+}
+
 // Get namespace import from an import statement
 function getNamespaceImp(stmt: string): string | null {
   // Namespace import contains "* as". It can
@@ -136,16 +185,21 @@ function getNamespaceImp(stmt: string): string | null {
   return null;
 }
 
+type defaultImport = {
+  importedAs: string | null,
+  exportedAs: string | null
+}
+
 type imports = {
   import: string;
-  defaultImp: string | null;
+  defaultImp: defaultImport | null;
   namedImps: stringToNamedImp[] | null;
   namespaceImp: string | null;
   module: string;
 } | null;
 
 // Convert import statement to an object
-function importToObj(imp: RegExpExecArray): imports {
+function importToObj(imp: RegExpExecArray, filePath: string): imports {
   if (!imp) return null;
 
   let module = imp[3].match(/('|")(.*)('|")/gm);
@@ -158,13 +212,18 @@ function importToObj(imp: RegExpExecArray): imports {
 
   let namedImps: stringToNamedImp[] | null = getNamedImps(stmt);
 
-  let defaultImp: string | null = getDefaultImp(stmt);
+  let importedAs: string | null = getDefaultImp(stmt);
+  let exportPath = path.resolve(path.dirname(filePath), moduleStr);
+  let exportedAs: string | null = getDefaultExp(exportPath + ".js");
 
   let namespaceImp: string | null = getNamespaceImp(stmt);
 
   return {
     import: stmt, // Import statement
-    defaultImp, // Default import present in the import statement
+    defaultImp: {
+      importedAs, // Default import present in the import statement
+      exportedAs  // Name as it is exported from the file
+    },
     namedImps: namedImps, // Named imports present in the import statement
     namespaceImp, // Namespace import present in the import statement
     module: moduleStr, // Name of module from which import is happening
@@ -200,10 +259,12 @@ export function getImports(filePath: string): returnGetImports {
     match = reg.exec(code);
     if (match) {
       // Convert the import statement into an object
-      let importObj: imports = importToObj(match);
+      let importObj: imports = importToObj(match, filePath);
       imports.push(importObj);
     }
   } while (match);
 
   return { imports, lazyImps };
 }
+
+console.log(JSON.stringify(getImports("/Users/naveen/code/react-crypto-tracker/src/App.js"), undefined, 2));
