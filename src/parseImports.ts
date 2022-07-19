@@ -152,9 +152,9 @@ function getDefaultExp(filePath: string): string | null {
   if (!(match && match[3]))
     return "";
   const namedExps: string[] = preprocess(match[3]).split(",");
-  for(let namedExp of namedExps) {
+  for (let namedExp of namedExps) {
     const [name, exportedAs] = namedExp.split("as");
-    if(exportedAs.trim() === "default")
+    if (exportedAs.trim() === "default")
       return name.trim();
   }
 
@@ -214,7 +214,25 @@ function importToObj(imp: RegExpExecArray, filePath: string): imports {
 
   let importedAs: string | null = getDefaultImp(stmt);
   let exportPath = path.resolve(path.dirname(filePath), moduleStr);
-  let exportedAs: string | null = getDefaultExp(exportPath + ".js");
+  let exportedAs: string | null;
+
+  // checking export path does not lie in node_modules
+  let extensions: string[] = ['', '.js', '.jsx', '.ts', '.tsx'];
+  let inNodeModule:boolean = true;
+  let fileExtension:string = '';
+
+  for(let ext of extensions){
+    if(fs.existsSync(exportPath + ext)){
+      inNodeModule = false;
+      fileExtension = ext;
+      break;
+    }
+  }
+  
+  if(!inNodeModule)
+    exportedAs = getDefaultExp(exportPath + fileExtension);
+  else
+    exportedAs = importedAs;
 
   let namespaceImp: string | null = getNamespaceImp(stmt);
 
@@ -266,5 +284,3 @@ export function getImports(filePath: string): returnGetImports {
 
   return { imports, lazyImps };
 }
-
-console.log(JSON.stringify(getImports("/Users/naveen/code/react-crypto-tracker/src/App.js"), undefined, 2));

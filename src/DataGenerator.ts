@@ -3,15 +3,20 @@ import fs from "fs";
 import { getImports } from "./parseImports.js";
 import { returnGetImports } from './parseImports';
 
+type sourceObject = {
+  fileName: string,
+  lineNumber: number,
+  columnNumber: number
+}
+
 // Type of value corresponding to a key in render tree.
 type componentInfo = {
   name: string,
-  filePath: string,
-  childComponents: string[]
+  source: sourceObject
 };
 
 type renderTreeType = {
-  [key: string]: componentInfo      // Key's structure -> 'path_of_file_where_is_defined:component_name'.
+  [key: string]: componentInfo
 };
 
 // Information stored for a file.
@@ -51,20 +56,23 @@ function getFileInitData(name: string, entryPath: string): fileData {
   }
 }
 
-function dfs(node: string): void {
-  if (!node || !node.length) return;
+for (let node in renderTree) {
+  if (renderTree[node].hasOwnProperty('source') === false)
+    continue;
 
-  let filePath: string = renderTree[node].filePath;
-  /*let filePath = node.slice(0, node.lastIndexOf(':'));*/
+  let filePath = renderTree[node].source.fileName;
 
-  if (!dataObject.hasOwnProperty(filePath)) {
+  // check this file is in memo or not
+
+  filePath = filePath.replaceAll('\\', '/');
+
+  if (dataObject.hasOwnProperty(filePath) === false) {
     // If we don't have any Information regarding the current files imports in dataObject we need to run parse imports once for the current file.
 
     let fileData: fileData = getFileInitData(path.basename(filePath), filePath);
     fileData.size = fs.statSync(filePath).size;     // computing size of current file.
     let { lazyImps, imports }: returnGetImports = getImports(filePath);
 
-    // Loop over the import statements.
     for (let imp of imports) {
       if (!imp || !imp.module)
         continue;
@@ -86,26 +94,26 @@ function dfs(node: string): void {
       importModulePath = importModulePath.replaceAll('\\', '/');
 
       // Initially all the components from default, namespace & named imports are considered as can be lazy loaded.
-      
+
       // If the component is being imported as a default import.
       if (imp.defaultImp) {
-        fileData.canBeLazyLoaded.push(importModulePath + ':' + imp.defaultImp.importedAs);
+        fileData.canBeLazyLoaded.push(importModulePath + ':' + imp.defaultImp.importedAs + ':' + imp.defaultImp.exportedAs);
       }
 
       // If the component is being imported as namespace import.
       if (imp.namespaceImp) {
-        fileData.canBeLazyLoaded.push(importModulePath + ':' + imp.namespaceImp);
+        fileData.canBeLazyLoaded.push(importModulePath + ':' + imp.namespaceImp + ':' + imp.namespaceImp);
       }
 
       // Getting components from named import
       for (let namedImp of imp.namedImps || []) {
         if (namedImp.alias !== undefined) {
-          fileData.canBeLazyLoaded.push(importModulePath+':'+namedImp.alias);
+          fileData.canBeLazyLoaded.push(importModulePath + ':' + namedImp.namedImp + ':' + namedImp.alias);
         }
 
         // Getting components from named import.
         if (namedImp.alias === undefined && namedImp.namedImp !== undefined) {
-          fileData.canBeLazyLoaded.push(importModulePath+':'+namedImp.namedImp);
+          fileData.canBeLazyLoaded.push(importModulePath + ':' + namedImp.namedImp + ':' + namedImp.namedImp);
         }
       }
     }
@@ -122,35 +130,71 @@ function dfs(node: string): void {
             break;
           }
         }
-  
+
         if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules. 
           continue;
 
-          importModulePath = importModulePath.replaceAll('\\', '/');
+        importModulePath = importModulePath.replaceAll('\\', '/');
 
-        fileData.alreadyLazyLoaded.push(importModulePath+':'+lazyImp.lazyImp);
+        fileData.alreadyLazyLoaded.push(importModulePath + ':' + lazyImp.lazyImp);
       }
     }
 
     dataObject[filePath] = fileData;
   }
 
-  // loop over all the child component of the current component, that are present in the render tree.
-  for (let childComponent of renderTree[node].childComponents) {
-   
-    if (dataObject[filePath].canBeLazyLoaded.indexOf(childComponent) !== -1) {
-      //If the current child component is rendered we remove it from can be lazy loaded for the current file (in which the parent component resides).
-      let index: number = dataObject[filePath].canBeLazyLoaded.indexOf(childComponent);
-      dataObject[filePath].canNotBeLazyLoaded.push(childComponent);
-      dataObject[filePath].canBeLazyLoaded.splice(index, index+1);
+  // Getting name from component rendering statement.
+  let code: string = fs.readFileSync(filePath, "utf8");
+
+  const lineNumber: number = renderTree[node].source.lineNumber;
+  const ColumnNumber: number = renderTree[node].source.columnNumber;
+
+  let numberOfCharacters = 0;   // For finding number of characters present in file before the render statement.
+  let line = 1, col=1;
+
+  while(line!==lineNumber || col!==ColumnNumber){
+    col++;
+
+    if(code[numberOfCharacters]==='\n'){
+      line++;
+      col=1;
+    }
+
+    numberOfCharacters++;
+  }
+
+  // Remove the code present before the render statement of the current component.
+  code = code.substring(numberOfCharacters+1, code.length);
+
+  // Get the render statement by removing excess code after '>'.
+  let renderStatement: string = code.substring(0, code.indexOf('>'));
+
+  // Get all the keywords/words present in the render statement of the current component.
+  const keywords = renderStatement.split(/[^a-zA-Z0-9_$]+/gm);
+
+  // Loop over all the imports that can still be lazy loaded for the current file & match those with the current component.
+  for (let imp of dataObject[filePath].canBeLazyLoaded) {
+    let found = false;
+
+    let importDetails = imp.split(':');
+
+    let exportName = importDetails[importDetails.length-1];
+    let importName = importDetails[importDetails.length-2];
+
+    for (let word of keywords) {
+      if (word === importName && exportName === renderTree[node].name) {
+        found = true;
+
+        //If the current child component is rendered we remove it from can be lazy loaded for the current file (in which the parent component resides).
+        let index: number = dataObject[filePath].canBeLazyLoaded.indexOf(imp);
+        dataObject[filePath].canNotBeLazyLoaded.push(imp);
+        dataObject[filePath].canBeLazyLoaded.splice(index, index + 1);
+      }
+    }
+
+    if (found){
+      // If the current component has already matched one of the imports, we don't need to match it with any other components.
+      break;
     }
   }
-
-  // calling dfs function for all the child components of the current component, that are present in the render tree.
-  for (let childComponent of renderTree[node].childComponents) {
-    dfs(childComponent);
-  }
 }
-
-// calling dfs function with 'path_of_where_root_component_is_definition:root_component_name', where root component represents the root node of render tree.
-dfs('C:/Users/Sprinklr/Desktop/practice/New folder/react-crypto-tracker/src/App.js:App');
