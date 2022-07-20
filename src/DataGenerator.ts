@@ -19,15 +19,24 @@ type renderTreeType = {
   [key: string]: componentInfo
 };
 
+type importStatements = {
+  path: string,
+  exportName: string | null
+}
+
+type canBeLazy = {
+  [key: string]: importStatements     // Here key is the importName used for importing a component in a file.
+}
+
 // Information stored for a file.
 type fileData = {
   name: string,
   path: string,
   size: number,
   type: string,
-  alreadyLazyLoaded: string[],
-  canBeLazyLoaded: string[],
-  canNotBeLazyLoaded: string[]
+  alreadyLazyLoaded: number,
+  canBeLazyLoaded: canBeLazy,
+  canNotBeLazyLoaded: number
 }
 
 type outputObject = {
@@ -50,17 +59,24 @@ function getFileInitData(name: string, entryPath: string): fileData {
     path: entryPath,
     size: 0,
     type: path.extname(name),
-    alreadyLazyLoaded: [],
-    canBeLazyLoaded: [],
-    canNotBeLazyLoaded: []
+    alreadyLazyLoaded: 0,
+    canBeLazyLoaded: {},
+    canNotBeLazyLoaded: 0
   }
 }
+
+type dontLazyLoad = {
+  path: string,
+  exportName: string | null
+}
+
+let notToBeLazyLoaded: { [key: string]: dontLazyLoad } = {};
 
 for (let node in renderTree) {
   if (renderTree[node].hasOwnProperty('source') === false)
     continue;
 
-  let filePath = renderTree[node].source.fileName;
+  let filePath: string = renderTree[node].source.fileName;
 
   // check this file is in memo or not
 
@@ -78,7 +94,7 @@ for (let node in renderTree) {
         continue;
 
       // Absolute path of file from which the current imported component is exported.
-      let importModulePath = path.resolve(path.dirname(filePath), imp.module);
+      let importModulePath: string = path.resolve(path.dirname(filePath), imp.module);
 
       for (let extension of extensions) {
         if (fs.existsSync(importModulePath + extension)) {
@@ -96,24 +112,40 @@ for (let node in renderTree) {
       // Initially all the components from default, namespace & named imports are considered as can be lazy loaded.
 
       // If the component is being imported as a default import.
-      if (imp.defaultImp) {
-        fileData.canBeLazyLoaded.push(importModulePath + ':' + imp.defaultImp.importedAs + ':' + imp.defaultImp.exportedAs);
+      if (imp.defaultImp !== null && imp.defaultImp.importedAs !== null) {
+        fileData.canBeLazyLoaded[imp.defaultImp.importedAs] =
+        {
+          path: importModulePath,
+          exportName: imp.defaultImp.exportedAs
+        };
       }
 
       // If the component is being imported as namespace import.
       if (imp.namespaceImp) {
-        fileData.canBeLazyLoaded.push(importModulePath + ':' + imp.namespaceImp + ':' + imp.namespaceImp);
+        fileData.canBeLazyLoaded[imp.namespaceImp] =
+        {
+          path: importModulePath,
+          exportName: imp.namespaceImp
+        }
       }
 
       // Getting components from named import
       for (let namedImp of imp.namedImps || []) {
-        if (namedImp.alias !== undefined) {
-          fileData.canBeLazyLoaded.push(importModulePath + ':' + namedImp.namedImp + ':' + namedImp.alias);
+        if (namedImp.alias !== undefined && namedImp.namedImp !== null) {
+          fileData.canBeLazyLoaded[namedImp.namedImp] =
+          {
+            path: importModulePath,
+            exportName: namedImp.alias
+          }
         }
 
         // Getting components from named import.
         if (namedImp.alias === undefined && namedImp.namedImp !== undefined) {
-          fileData.canBeLazyLoaded.push(importModulePath + ':' + namedImp.namedImp + ':' + namedImp.namedImp);
+          fileData.canBeLazyLoaded[namedImp.namedImp] =
+          {
+            path: importModulePath,
+            exportName: namedImp.namedImp
+          }
         }
       }
     }
@@ -122,7 +154,7 @@ for (let node in renderTree) {
     for (let lazyImp of lazyImps) {
       if (lazyImp.lazyImp) {
 
-        let importModulePath = path.resolve(path.dirname(filePath), lazyImp.module);
+        let importModulePath: string = path.resolve(path.dirname(filePath), lazyImp.module);
 
         for (let extension of extensions) {
           if (fs.existsSync(importModulePath + extension)) {
@@ -134,9 +166,10 @@ for (let node in renderTree) {
         if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules. 
           continue;
 
-        importModulePath = importModulePath.replaceAll('\\', '/');
+        //importModulePath = importModulePath.replaceAll('\\', '/');
 
-        fileData.alreadyLazyLoaded.push(importModulePath + ':' + lazyImp.lazyImp);
+        //fileData.alreadyLazyLoaded.push(importModulePath + ':' + lazyImp.lazyImp);
+        fileData.alreadyLazyLoaded++;
       }
     }
 
@@ -149,52 +182,81 @@ for (let node in renderTree) {
   const lineNumber: number = renderTree[node].source.lineNumber;
   const ColumnNumber: number = renderTree[node].source.columnNumber;
 
-  let numberOfCharacters = 0;   // For finding number of characters present in file before the render statement.
-  let line = 1, col=1;
+  let numberOfCharacters: number = 0;   // For finding number of characters present in file before the render statement.
+  let line: number = 1, col: number = 1;
 
-  while(line!==lineNumber || col!==ColumnNumber){
+  while (line !== lineNumber || col !== ColumnNumber) {
     col++;
 
-    if(code[numberOfCharacters]==='\n'){
+    if (code[numberOfCharacters] === '\n') {
       line++;
-      col=1;
+      col = 1;
     }
 
     numberOfCharacters++;
   }
 
   // Remove the code present before the render statement of the current component.
-  code = code.substring(numberOfCharacters+1, code.length);
+  code = code.substring(numberOfCharacters + 1, code.length);
 
   // Get the render statement by removing excess code after '>'.
   let renderStatement: string = code.substring(0, code.indexOf('>'));
 
   // Get all the keywords/words present in the render statement of the current component.
-  const keywords = renderStatement.split(/[^a-zA-Z0-9_$]+/gm);
+  const keywords: string[] = renderStatement.split(/[^a-zA-Z0-9_$]+/gm);
 
   // Loop over all the imports that can still be lazy loaded for the current file & match those with the current component.
-  for (let imp of dataObject[filePath].canBeLazyLoaded) {
-    let found = false;
+  for (let imp in dataObject[filePath].canBeLazyLoaded) {
+    let found: boolean = false;
 
-    let importDetails = imp.split(':');
-
-    let exportName = importDetails[importDetails.length-1];
-    let importName = importDetails[importDetails.length-2];
+    let importDetails: importStatements = dataObject[filePath].canBeLazyLoaded[imp];
 
     for (let word of keywords) {
-      if (word === importName && exportName === renderTree[node].name) {
+      if (imp === word && importDetails.exportName === renderTree[node].name) {
         found = true;
 
         //If the current child component is rendered we remove it from can be lazy loaded for the current file (in which the parent component resides).
-        let index: number = dataObject[filePath].canBeLazyLoaded.indexOf(imp);
-        dataObject[filePath].canNotBeLazyLoaded.push(imp);
-        dataObject[filePath].canBeLazyLoaded.splice(index, index + 1);
+        //let index: number = dataObject[filePath].canBeLazyLoaded.indexOf(imp);
+        dataObject[filePath].canNotBeLazyLoaded++;
+        //dataObject[filePath].canBeLazyLoaded.splice(index, index + 1);
+
+        delete dataObject[filePath].canBeLazyLoaded[imp];
+
+        let key: string = importDetails.path + ':' + importDetails.exportName;
+
+        if (notToBeLazyLoaded.hasOwnProperty(key))
+          continue;
+
+        notToBeLazyLoaded[key] =
+        {
+          path: importDetails.path,
+          exportName: importDetails.exportName
+        }
       }
     }
 
-    if (found){
+    if (found) {
       // If the current component has already matched one of the imports, we don't need to match it with any other components.
       break;
+    }
+  }
+
+  // Loop over all the components that cant be lazy loaded 
+  for (let imp in notToBeLazyLoaded) {
+    // loop over all the file values in dataObject
+
+    for (let file in dataObject) {
+      // For the current file, remove the current component if it's in canBeLazyLoaded array 
+
+      for (let canLazyLoad in dataObject[file].canBeLazyLoaded) {
+        let importDetails: importStatements = dataObject[file].canBeLazyLoaded[canLazyLoad];
+
+        if (importDetails.path === notToBeLazyLoaded[imp].path && importDetails.exportName === notToBeLazyLoaded[imp].exportName) {
+          delete dataObject[file].canBeLazyLoaded[canLazyLoad];
+          dataObject[file].canNotBeLazyLoaded++;
+          break;
+        }
+      }
     }
   }
 }
