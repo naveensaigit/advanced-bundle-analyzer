@@ -43,12 +43,15 @@ type outputObject = {
   [key: string]: fileData
 }
 
+//
+const readPath:string = path.resolve(process.argv[2]), writePath: string = process.argv[3] || "data.json";
+
 // These are the files which we are considering empty extension is used to match for the files whose extension is already given in the import statement path.
 let extensions: string[] = ['', '.js', '.jsx', '.ts', '.tsx'];
 
 let dataObject: outputObject = {};
 
-let renderTree: renderTreeType = {};
+let renderTree: renderTreeType = JSON.parse(fs.readFileSync(readPath).toString());
 
 // Function to get initial object to store file data.
 function getFileInitData(name: string, entryPath: string): fileData {
@@ -260,3 +263,5 @@ for (let node in renderTree) {
     }
   }
 }
+
+fs.writeFileSync(writePath, JSON.stringify(dataObject, undefined, 2));

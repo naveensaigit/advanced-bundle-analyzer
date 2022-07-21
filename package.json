@@ -1,3 +1,11 @@
 {
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "devtools": "react-devtools",
+    "puppeteer": "node headless.js"
+  },
+  "dependencies": {
+    "@types/node": "^18.0.6",
+    "puppeteer": "^15.4.0"
+  }
 }
