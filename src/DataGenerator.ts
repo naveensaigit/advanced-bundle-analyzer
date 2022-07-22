@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+import { execSync } from "child_process";
 import { getImports } from "./parseImports.js";
 import { returnGetImports } from './parseImports';
 
@@ -43,15 +44,12 @@ type outputObject = {
   [key: string]: fileData
 }
 
-//
-const readPath:string = path.resolve(process.argv[2]), writePath: string = process.argv[3] || "data.json";
-
 // These are the files which we are considering empty extension is used to match for the files whose extension is already given in the import statement path.
 let extensions: string[] = ['', '.js', '.jsx', '.ts', '.tsx'];
 
 let dataObject: outputObject = {};
 
-let renderTree: renderTreeType = JSON.parse(fs.readFileSync(readPath).toString());
+let renderTree: renderTreeType = {};
 
 // Function to get initial object to store file data.
 function getFileInitData(name: string, entryPath: string): fileData {
@@ -264,4 +262,204 @@ for (let node in renderTree) {
   }
 }
 
-fs.writeFileSync(writePath, JSON.stringify(dataObject, undefined, 2));
+/*--------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+// Now we have the dataObject & Using this we need to form Data.json file.
+
+// Information stored for a folder in completeDataObject
+type completeFolderData = {
+  name: string,
+  path: string,
+  size: number,
+  noOfSubFolders: number,
+  noOfSubFiles: number,
+  alreadyLazyLoaded: number,
+  canBeLazyLoaded: number,
+  canNotBeLazyLoaded: number,
+  foldersInside: string[],
+  filesInside: string[],
+  parentFolder: string,
+  [key: string]: any
+}
+
+// Information stored for a file in completeDataObject
+type completeFileData = {
+  name: string,
+  path: string,
+  size: number,
+  type: string,
+  alreadyLazyLoaded: number,
+  canBeLazyLoaded: canBeLazy,
+  canNotBeLazyLoaded: number,
+  parentFolder: string,
+  [key: string]: any
+}
+
+// Type for global data object
+// "entry" - fileData or folderData
+type data = {
+  [key: string]: completeFileData | completeFolderData
+}
+
+// Path of root folder
+const rootPath: string = path.resolve();
+let writePath: string = "data.json";
+
+// Git command to get all ignored folders and files present in .gitignore
+const ignore_cmd: string = "git ls-files -o -i --exclude-standard --directory";
+// Some folders and files which may not be present in .gitignore
+let ignore_dirs: string[] = [".git", ".gitignore", "README.md", "scripts"];
+// Global data object
+let completeDataObject: data = { rootPath: getFileData("rootPath", rootPath) };
+
+// Function to get all ignored folders and files present in .gitignore
+function parseGitignore(): string[] {
+  // Execute the git command and get its output
+  const stdout: string = execSync(ignore_cmd).toString();
+  // Get the list of entries to be ignored by splitting the string
+  // with newline and ignore last entry since it would be empty
+  ignore_dirs.push(...stdout.split("\n").slice(0, -1));
+  // Convert the relative paths to absolute paths
+  ignore_dirs = ignore_dirs.map((folder) => path.join(rootPath, folder));
+  return ignore_dirs;
+}
+
+// Function to check if entry must be ignored
+function ignoreDirent(entry: string): boolean {
+  // Check if entry exists in list of paths to be ignored
+  // path.relative returns empty string if paths are equal
+  return ignore_dirs.findIndex((ignore) => path.relative(ignore, entry) === "") !== -1;
+}
+
+// Function to get path relative to root folder
+function relPath(dir: string): string {
+  // Replace \\ with / for consistency (for Windows paths)
+  return "/" + path.relative(rootPath, dir).replaceAll("\\", "/");
+}
+
+// Function to get initial object to store file data
+function getFileData(name: string, entryPath: string): completeFileData {
+  // Replace \\ with / for consistency (for Windows paths)
+  entryPath = entryPath.replaceAll("\\", "/");
+  return {
+    name,
+    path: entryPath,
+    size: 0,
+    type: path.extname(name),
+    alreadyLazyLoaded: 0,
+    canBeLazyLoaded: {},
+    canNotBeLazyLoaded: 0,
+    parentFolder: relPath(path.dirname(entryPath)),
+  }
+}
+
+// Function to get initial object to store folder data
+function getFolderData(name: string, entryPath: string): completeFolderData {
+  // Replace \\ with / for consistency (for Windows paths)
+  entryPath = entryPath.replaceAll("\\", "/");
+  return {
+    name,
+    path: entryPath,
+    size: 0,
+    noOfSubFolders: 0,
+    noOfSubFiles: 0,
+    alreadyLazyLoaded: 0,
+    canBeLazyLoaded: 0,
+    canNotBeLazyLoaded: 0,
+    foldersInside: [],
+    filesInside: [],
+    parentFolder: relPath(path.dirname(entryPath)),
+  };
+}
+
+// Function to find data of a file
+function addFile(filePath: string): completeFileData {
+  // Get initial data for a file
+  let fileData: completeFileData = getFileData(path.basename(filePath), filePath);
+  let key: string = filePath.replaceAll("\\", "/");
+
+  fileData.size = dataObject[key].size;
+  fileData.canBeLazyLoaded = dataObject[key].canBeLazyLoaded;
+  fileData.canNotBeLazyLoaded = dataObject[key].canNotBeLazyLoaded;
+  fileData.alreadyLazyLoaded = dataObject[key].alreadyLazyLoaded;
+
+  return fileData;
+}
+
+// Function to recursively traverse a directory
+function walk(dir: string): completeFolderData {
+  // Get initial data for a folder
+  let dirData: completeFolderData = getFolderData(path.basename(dir), dir);
+
+  // Get all directory entries present in the folder
+  const entries: fs.Dirent[] = fs.readdirSync(dir, { withFileTypes: true });
+
+  entries.forEach(function (dirent: fs.Dirent): void {
+    // Get name of directory entry
+    const entry: string = dirent.name;
+    // Construct path of this entry
+    const entryPath: string = path.join(dir, entry);
+
+    // If entry is present in list of entries
+    // to be ignored, don't process it further
+    if (ignoreDirent(entryPath)) return;
+
+    // Entry is a folder
+    if (dirent.isDirectory()) {
+      // Recursively traverse this folder
+      const recData: completeFolderData = walk(entryPath);
+
+      if (recData.noOfSubFiles === 0) return;
+
+      // Add the properties of subfolders to current folder's data
+      const properties: string[] = ["size", "noOfSubFolders", "noOfSubFiles", "totalLazyLoaded", "canBeLazyLoaded"];
+      for (const property of properties)
+        dirData[property] += recData[property];
+
+      // Increment the count of sub-folders
+      dirData.noOfSubFolders++;
+      // Add the relative path of sub-folder to current folder
+      dirData.foldersInside.push(relPath(entryPath));
+    }
+    // Entry is a file
+    else if (dirent.isFile()) {
+
+      let key: string = entryPath.replaceAll("\\", "/");
+
+      if (dataObject.hasOwnProperty(key) === false) return;
+
+      // Get data of the file
+      const recData = addFile(entryPath);
+      // Add this data to the global data
+      completeDataObject[relPath(entryPath)] = recData;
+
+      // Add the properties of subfolders to current folder's data
+      dirData.size += recData.size;
+      dirData.noOfSubFiles++;
+      dirData.alreadyLazyLoaded += recData.alreadyLazyLoaded;
+      dirData.canNotBeLazyLoaded += recData.canNotBeLazyLoaded;
+      dirData.canBeLazyLoaded += Object.keys(recData.canBeLazyLoaded).length;
+      dirData.filesInside.push(relPath(entryPath));
+    }
+  });
+
+  if (dirData.noOfSubFiles !== 0) {
+    // Add data of current folder to the global data
+    completeDataObject[relPath(dir)] = dirData;
+  }
+
+  return dirData;
+}
+
+parseGitignore();
+// Start traversing from root path
+walk(rootPath);
+
+if(completeDataObject.hasOwnProperty('/') === false){
+  completeDataObject["/"] = getFolderData(path.basename(rootPath), rootPath);
+}
+
+// Link root folder to itself
+completeDataObject["/"].parentFolder = "/";
+// Write the data into output file
+fs.writeFile(writePath, JSON.stringify(completeDataObject, undefined, 2), e => e ? console.log(e) : "");
