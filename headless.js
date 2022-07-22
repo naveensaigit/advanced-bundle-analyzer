@@ -6,7 +6,7 @@ const __dirname = path.resolve();
 
 function fileCreated(filename = "renderTree.json") {
   const promise = new Promise((resolve, _) => {
-    if(fs.existsSync(path.resolve(process.env.TREEPATH || '', filename)))
+    if(fs.existsSync(path.resolve((process.env.TREEPATH || '').trim(), filename)))
       resolve("File Created");
     else
       return setTimeout(() => resolve(fileCreated(filename)), 1000);
