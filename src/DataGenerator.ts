@@ -412,7 +412,7 @@ function walk(dir: string): completeFolderData {
       if (recData.noOfSubFiles === 0) return;
 
       // Add the properties of subfolders to current folder's data
-      const properties: string[] = ["size", "noOfSubFolders", "noOfSubFiles", "totalLazyLoaded", "canBeLazyLoaded"];
+      const properties: string[] = ["size", "noOfSubFolders", "noOfSubFiles", "alreadyLazyLoaded", "canBeLazyLoaded", "canNotBeLazyLoaded"];
       for (const property of properties)
         dirData[property] += recData[property];
 
