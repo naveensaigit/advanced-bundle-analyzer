@@ -83,9 +83,21 @@ for (let node in renderTree) {
 
   let filePath: string = renderTree[node].source.fileName;
 
-  // check this file is in memo or not
-
   filePath = filePath.replaceAll('\\', '/');
+
+  // check this file exists in disk or not.
+  for (let extension of extensions) {
+    if (fs.existsSync(filePath + extension) && fs.lstatSync(filePath + extension).isFile()) {
+      // Adding the file extensions & checking if the current file is actually present in the path received from render tree or not.
+      filePath += extension;
+      break;
+    }
+  }
+
+  if (!fs.existsSync(filePath) || !fs.lstatSync(filePath).isFile())   // If the file is not present in the path. 
+    continue;
+
+  // check this file is in memo or not
 
   if (dataObject.hasOwnProperty(filePath) === false) {
     // If we don't have any Information regarding the current files imports in dataObject we need to run parse imports once for the current file.
@@ -102,14 +114,14 @@ for (let node in renderTree) {
       let importModulePath: string = path.resolve(path.dirname(filePath), imp.module);
 
       for (let extension of extensions) {
-        if (fs.existsSync(importModulePath + extension)) {
+        if (fs.existsSync(importModulePath + extension) && fs.lstatSync(importModulePath + extension).isFile()) {
           // Adding the file extensions & checking if the current file is actually present in the path received from import statement.
           importModulePath += extension;
           break;
         }
       }
 
-      if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules.
+      if (!fs.existsSync(importModulePath) || !fs.lstatSync(importModulePath).isFile())   // If the file is not present in the path mentioned in the import statement, it is imported from node modules.
         continue;
 
       importModulePath = importModulePath.replaceAll('\\', '/');
@@ -162,13 +174,13 @@ for (let node in renderTree) {
         let importModulePath: string = path.resolve(path.dirname(filePath), lazyImp.module);
 
         for (let extension of extensions) {
-          if (fs.existsSync(importModulePath + extension)) {
+          if (fs.existsSync(importModulePath + extension) && fs.lstatSync(importModulePath + extension).isFile()) {
             importModulePath += extension;
             break;
           }
         }
 
-        if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules.
+        if (!fs.existsSync(importModulePath) || !fs.lstatSync(importModulePath).isFile())   // If the file is not present in the path mentioned in the import statement, it is imported from node modules.
           continue;
 
         //importModulePath = importModulePath.replaceAll('\\', '/');

@@ -222,7 +222,7 @@ function importToObj(imp: RegExpExecArray, filePath: string): imports {
   let fileExtension:string = '';
 
   for(let ext of extensions){
-    if(fs.existsSync(exportPath + ext)){
+    if(fs.existsSync(exportPath + ext) && fs.lstatSync(exportPath + ext).isFile()){
       inNodeModule = false;
       fileExtension = ext;
       break;
