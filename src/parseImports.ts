@@ -228,7 +228,7 @@ function importToObj(imp: RegExpExecArray, filePath: string): imports {
       break;
     }
   }
-  
+
   if(!inNodeModule)
     exportedAs = getDefaultExp(exportPath + fileExtension);
   else

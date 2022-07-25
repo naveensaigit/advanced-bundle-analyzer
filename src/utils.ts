@@ -5,7 +5,7 @@ export function preprocess(str: string): string {
 
 // Remove comments present in file
 export function removeComments(data: string): string {
-  let regex: RegExp = /\/\/.*|\/\*[^]*\*\//g;
+  let regex: RegExp = /([^:]\/\/.*|\/\*((.|\r\n|\s)*?)\*\/)/gm;
 
   return data.replace(regex, "");
 }

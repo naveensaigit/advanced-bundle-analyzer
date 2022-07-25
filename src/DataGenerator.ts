@@ -109,7 +109,7 @@ for (let node in renderTree) {
         }
       }
 
-      if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules. 
+      if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules.
         continue;
 
       importModulePath = importModulePath.replaceAll('\\', '/');
@@ -168,7 +168,7 @@ for (let node in renderTree) {
           }
         }
 
-        if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules. 
+        if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules.
           continue;
 
         //importModulePath = importModulePath.replaceAll('\\', '/');
@@ -246,12 +246,12 @@ for (let node in renderTree) {
     }
   }
 
-  // Loop over all the components that cant be lazy loaded 
+  // Loop over all the components that cant be lazy loaded
   for (let imp in notToBeLazyLoaded) {
     // loop over all the file values in dataObject
 
     for (let file in dataObject) {
-      // For the current file, remove the current component if it's in canBeLazyLoaded array 
+      // For the current file, remove the current component if it's in canBeLazyLoaded array
 
       for (let canLazyLoad in dataObject[file].canBeLazyLoaded) {
         let importDetails: importStatements = dataObject[file].canBeLazyLoaded[canLazyLoad];
