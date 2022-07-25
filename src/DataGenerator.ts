@@ -455,11 +455,52 @@ parseGitignore();
 // Start traversing from root path
 walk(rootPath);
 
-if(completeDataObject.hasOwnProperty('/') === false){
+if (completeDataObject.hasOwnProperty("/") === false) {
   completeDataObject["/"] = getFolderData(path.basename(rootPath), rootPath);
 }
 
 // Link root folder to itself
 completeDataObject["/"].parentFolder = "/";
+
+// Modify the completeDataObject
+
+let modifiedCompleteDataObject: data = {};
+
+for (let path in completeDataObject) {
+  let newPath = path;
+  if (path[0] === "/") newPath = "/" + completeDataObject["/"].name + path;
+  if (path === "/") newPath = "/" + completeDataObject["/"].name;
+
+  modifiedCompleteDataObject[newPath] = completeDataObject[path];
+
+  if (path === newPath) continue;
+
+  if (modifiedCompleteDataObject[newPath].parentFolder === "/" && path !== "/")
+    modifiedCompleteDataObject[newPath].parentFolder = "/" + completeDataObject["/"].name;
+  else if (modifiedCompleteDataObject[newPath].parentFolder[0] === "/" && path !== "/")
+    modifiedCompleteDataObject[newPath].parentFolder = "/" + completeDataObject["/"].name + modifiedCompleteDataObject[newPath].parentFolder;
+
+  if (typeof modifiedCompleteDataObject[newPath].foldersInside === "object") {
+    for (let index = 0; index < modifiedCompleteDataObject[newPath].foldersInside.length; index++) {
+      if (modifiedCompleteDataObject[newPath].foldersInside[index][0] === "/") {
+        modifiedCompleteDataObject[newPath].foldersInside[index] = "/" + completeDataObject["/"].name + modifiedCompleteDataObject[newPath].foldersInside[index];
+      }
+    }
+  }
+
+  if (typeof modifiedCompleteDataObject[newPath].filesInside === "object") {
+    for (let index = 0; index < modifiedCompleteDataObject[newPath].filesInside.length; index++) {
+      if (modifiedCompleteDataObject[newPath].filesInside[index][0] === "/") {
+        modifiedCompleteDataObject[newPath].filesInside[index] = "/" + completeDataObject["/"].name + modifiedCompleteDataObject[newPath].filesInside[index];
+      }
+    }
+  }
+}
+
+modifiedCompleteDataObject["/"] = getFolderData(path.basename(rootPath), rootPath);
+modifiedCompleteDataObject["/"].parentFolder = "/";
+modifiedCompleteDataObject["/"].foldersInside.push("/" + completeDataObject["/"].name);
+modifiedCompleteDataObject["/"].name = ":rootDirectory";
+
 // Write the data into output file
-fs.writeFile(writePath, JSON.stringify(completeDataObject, undefined, 2), e => e ? console.log(e) : "");
+fs.writeFile(writePath, JSON.stringify(modifiedCompleteDataObject, undefined, 2), e => e ? console.log(e) : "");
