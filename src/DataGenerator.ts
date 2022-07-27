@@ -185,10 +185,16 @@ for (let node in renderTree) {
   let code: string = fs.readFileSync(filePath, "utf8");
 
   const lineNumber: number = renderTree[node].source.lineNumber;
-  const ColumnNumber: number = renderTree[node].source.columnNumber;
+  let ColumnNumber: number = 1;
 
   let numberOfCharacters: number = 0;   // For finding number of characters present in file before the render statement.
   let line: number = 1, col: number = 1;
+  let ch = '\n';
+
+  if (renderTree[node].source.columnNumber) {
+    ColumnNumber = renderTree[node].source.columnNumber;
+    ch = '>';
+  }
 
   while (line !== lineNumber || col !== ColumnNumber) {
     col++;
@@ -204,8 +210,8 @@ for (let node in renderTree) {
   // Remove the code present before the render statement of the current component.
   code = code.substring(numberOfCharacters + 1, code.length);
 
-  // Get the render statement by removing excess code after '>'.
-  let renderStatement: string = code.substring(0, code.indexOf('>'));
+  // Get the render statement by removing excess code after '>' or '\n'.
+  let renderStatement: string = code.substring(0, code.indexOf(ch));
 
   // Get all the keywords/words present in the render statement of the current component.
   const keywords: string[] = renderStatement.split(/[^a-zA-Z0-9_$]+/gm);
