@@ -218,18 +218,34 @@ function importToObj(imp: RegExpExecArray, filePath: string): imports {
 
   // checking export path does not lie in node_modules
   let extensions: string[] = ['', '.js', '.jsx', '.ts', '.tsx'];
-  let inNodeModule:boolean = true;
-  let fileExtension:string = '';
+  let inNodeModule: boolean = true;
+  let fileExtension: string = '';
 
-  for(let ext of extensions){
-    if(fs.existsSync(exportPath + ext) && fs.lstatSync(exportPath + ext).isFile()){
+  for (let ext of extensions) {
+    if (fs.existsSync(exportPath + ext) && fs.lstatSync(exportPath + ext).isFile()) {
       inNodeModule = false;
       fileExtension = ext;
       break;
     }
   }
 
-  if(!inNodeModule)
+  if (inNodeModule) {
+    let newExportPath = exportPath + "/index";
+
+    for (let ext of extensions) {
+      if (fs.existsSync(newExportPath + ext) && fs.lstatSync(newExportPath + ext).isFile()) {
+        inNodeModule = false;
+        fileExtension = ext;
+        break;
+      }
+    }
+
+    if (!inNodeModule) {
+      exportPath = newExportPath;
+    }
+  }
+
+  if (!inNodeModule)
     exportedAs = getDefaultExp(exportPath + fileExtension);
   else
     exportedAs = importedAs;
@@ -244,7 +260,7 @@ function importToObj(imp: RegExpExecArray, filePath: string): imports {
     },
     namedImps: namedImps, // Named imports present in the import statement
     namespaceImp, // Namespace import present in the import statement
-    module: moduleStr, // Name of module from which import is happening
+    module: exportPath+fileExtension, // Name of module from which import is happening
   };
 }
 
