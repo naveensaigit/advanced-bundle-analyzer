@@ -7,7 +7,7 @@ const fileCreated = (filename) => {
     if(fs.existsSync(path.resolve(process.env.RENDER_TREE_PATH || '', filename)))
       resolve("File Created");
     else
-      return setTimeout(() => resolve(fileCreated(filename)), process.env.CHECK_FILE || 1000);
+      return setTimeout(() => resolve(fileCreated(filename)), Number(process.env.CHECK_FILE || 1000));
   });
   return promise;
 }
@@ -19,7 +19,7 @@ const waitUntilConnection = (page, url) => {
       resolve("Connected");
     }
     catch(err) {
-      setTimeout(() => resolve(waitUntilConnection(page, url)), process.env.REFRESH_CONN || 50);
+      setTimeout(() => resolve(waitUntilConnection(page, url)), Number(process.env.REFRESH_CONN || 50));
     }
   });
   return promise;
@@ -27,7 +27,7 @@ const waitUntilConnection = (page, url) => {
 
 const openReactApp = async () => {
   console.log("Started Puppeteer!");
-  const browser = await puppeteer.launch({headless: true});
+  const browser = await puppeteer.launch({headless: process.env.BROWSER_HEADLESS === "true"});
   const page = await browser.newPage();
   await waitUntilConnection(page, 'http://localhost:8097/');
   console.log("Able to connect to DevTools Server!");
