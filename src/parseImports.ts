@@ -288,7 +288,7 @@ export function getImports(filePath: string): returnGetImports {
   // Remove comments from the code
   code = removeComments(code);
   // Remove single file imports
-  code = removeImports(code);
+  code = removeImports(code); 
 
   // Import statements are of the form "import <imports> from <moduleName>;"
   // eslint-disable-next-line no-control-regex
