@@ -113,8 +113,14 @@ function getDefaultImp(stmt: string): string | null {
   return null;
 }
 
+let defaultExportsMemo : {[key: string]: string | null} = {};
+
 // Get name of default export from a file
 function getDefaultExp(filePath: string): string | null {
+
+  if(typeof defaultExportsMemo[filePath] !== "undefined")
+    return defaultExportsMemo[filePath];
+
   // Read the file contents
   const oldcode: string = fs.readFileSync(filePath, "utf8");
   let match: RegEx;
@@ -130,7 +136,7 @@ function getDefaultExp(filePath: string): string | null {
 
   match = expDefFunc.exec(code);
   if (match && match[7])
-    return preprocess(match[7]);
+    return defaultExportsMemo[filePath] = preprocess(match[7]);
 
   // Match "export default expression"
   const expDef: RegExp = new RegExp(
@@ -140,7 +146,7 @@ function getDefaultExp(filePath: string): string | null {
 
   match = expDef.exec(code);
   if (match && match[7])
-    return preprocess(match[7]);
+    return defaultExportsMemo[filePath] = preprocess(match[7]);
 
   // Match "export { name as default }"
   const nameDef: RegExp = new RegExp(
@@ -150,15 +156,15 @@ function getDefaultExp(filePath: string): string | null {
 
   match = nameDef.exec(code);
   if (!(match && match[3]))
-    return "";
+    return defaultExportsMemo[filePath] = "";
   const namedExps: string[] = preprocess(match[3]).split(",");
   for (let namedExp of namedExps) {
     const [name, exportedAs] = namedExp.split("as");
     if (exportedAs.trim() === "default")
-      return name.trim();
+      return defaultExportsMemo[filePath] = name.trim();
   }
 
-  return null;
+  return defaultExportsMemo[filePath] = null;
 }
 
 // Get namespace import from an import statement

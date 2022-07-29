@@ -77,9 +77,16 @@ type dontLazyLoad = {
 
 let notToBeLazyLoaded: { [key: string]: dontLazyLoad } = {};
 
+let visited: {[key: string]: boolean} = {};
+
 for (let node in renderTree) {
   if (renderTree[node].hasOwnProperty('source') === false)
     continue;
+
+  if(visited[JSON.stringify(renderTree[node])])
+    continue;
+
+  visited[JSON.stringify(renderTree[node])] = true;
 
   let filePath: string = renderTree[node].source.fileName;
 
