@@ -83,10 +83,12 @@ for (let node in renderTree) {
   if (renderTree[node].hasOwnProperty('source') === false)
     continue;
 
-  if(visited[JSON.stringify(renderTree[node])])
+  let identifier_key:string = renderTree[node].name +":"+ renderTree[node].source.fileName;
+
+  if(visited[identifier_key])
     continue;
 
-  visited[JSON.stringify(renderTree[node])] = true;
+  visited[identifier_key] = true;
 
   let filePath: string = renderTree[node].source.fileName;
 
