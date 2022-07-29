@@ -3,6 +3,7 @@ import fs from "fs";
 import { execSync } from "child_process";
 import { getImports } from "./parseImports.js";
 import { returnGetImports } from './parseImports';
+import cliProgress from 'cli-progress';
 
 type sourceObject = {
   fileName: string,
@@ -77,15 +78,25 @@ type dontLazyLoad = {
 
 let notToBeLazyLoaded: { [key: string]: dontLazyLoad } = {};
 
-let visited: {[key: string]: boolean} = {};
+let visited: { [key: string]: boolean } = {};
+
+// create a new progress bar instance and use shades_classic theme
+console.log("Processing Render Tree :");
+const bar1 = new cliProgress.SingleBar({format:'{bar} {percentage}% | ETA: {eta}s | {value}/{total}'}, cliProgress.Presets.shades_classic);
+
+// start the progress bar with a total value equal to number of keys in render Tree  and start value of 0
+bar1.start(Object.keys(renderTree).length, 0);
+let currentPosition = 0;
 
 for (let node in renderTree) {
+  // update the current value in bar.
+  bar1.update(++currentPosition);
   if (renderTree[node].hasOwnProperty('source') === false)
     continue;
 
-  let identifier_key:string = renderTree[node].name +":"+ renderTree[node].source.fileName;
+  let identifier_key: string = renderTree[node].name + ":" + renderTree[node].source.fileName;
 
-  if(visited[identifier_key])
+  if (visited[identifier_key])
     continue;
 
   visited[identifier_key] = true;
@@ -281,6 +292,10 @@ for (let node in renderTree) {
   }
 }
 
+// stop the progress bar
+bar1.stop();
+console.log();
+
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 // Now we have the dataObject & Using this we need to form Data.json file.
@@ -401,6 +416,16 @@ function addFile(filePath: string): completeFileData {
   return fileData;
 }
 
+// create a new progress bar instance and use shades_classic theme
+console.log("Processing data :");
+const bar2 = new cliProgress.SingleBar({format:'{bar} {percentage}% | ETA: {eta}s'}, cliProgress.Presets.shades_classic);
+let total: number = 1;            // Total number of paths that need to be visited.
+let current: number = 0;          // Current number of paths that are visited.
+let bar2percent: number = 0;
+
+// start the progress bar showing progress of completeDataObject
+bar2.start(100, 0);
+
 // Function to recursively traverse a directory
 function walk(dir: string): completeFolderData {
   // Get initial data for a folder
@@ -421,6 +446,7 @@ function walk(dir: string): completeFolderData {
 
     // Entry is a folder
     if (dirent.isDirectory()) {
+      total++;
       // Recursively traverse this folder
       const recData: completeFolderData = walk(entryPath);
 
@@ -443,10 +469,12 @@ function walk(dir: string): completeFolderData {
 
       if (dataObject.hasOwnProperty(key) === false) return;
 
+      total++;
       // Get data of the file
       const recData = addFile(entryPath);
       // Add this data to the global data
       completeDataObject[relPath(entryPath)] = recData;
+      current++;
 
       // Add the properties of subfolders to current folder's data
       dirData.size += recData.size;
@@ -463,12 +491,22 @@ function walk(dir: string): completeFolderData {
     completeDataObject[relPath(dir)] = dirData;
   }
 
+  current++;
+  bar2percent = (bar2percent > ((current*100) / total))? bar2percent : ((current*100) / total);
+  
+  // update the current value in bar.
+  bar2.update(++bar2percent);
+
   return dirData;
 }
 
 parseGitignore();
+
 // Start traversing from root path
 walk(rootPath);
+
+// stop the progress bar
+bar2.stop();
 
 if (completeDataObject.hasOwnProperty("/") === false) {
   completeDataObject["/"] = getFolderData(path.basename(rootPath), rootPath);

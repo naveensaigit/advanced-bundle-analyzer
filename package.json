@@ -5,7 +5,9 @@
     "puppeteer": "node headless.js"
   },
   "dependencies": {
+    "@types/cli-progress": "^3.11.0",
     "@types/node": "^18.0.6",
+    "cli-progress": "^3.11.2",
     "puppeteer": "^15.4.0"
   }
 }
