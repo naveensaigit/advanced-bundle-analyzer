@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "devtools": "react-devtools",
+    "devtools": "node ../react/packages/react-devtools/bin.js",
     "puppeteer": "node headless.js"
   },
   "dependencies": {

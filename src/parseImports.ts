@@ -42,7 +42,7 @@ function getLazyImports(code: string): getLazy {
     }
   } while (match);
 
-  reg = new RegExp("import\\s*(.|\r\n)*?\\s*\\(((.|\r\n|\\s)*?)\\)", "gm");
+  reg = new RegExp("import(\\s|\r\n)*?\\(", "gm");
 
   do {
     match = reg.exec(code);
