@@ -1,2 +1,4 @@
+.vscode/
+*.tmp
 js-build/
 node_modules/

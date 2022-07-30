@@ -42,6 +42,18 @@ function getLazyImports(code: string): getLazy {
     }
   } while (match);
 
+  reg = new RegExp("import\\s*(.|\r\n)*?\\s*\\(((.|\r\n|\\s)*?)\\)", "gm");
+
+  do {
+    match = reg.exec(code);
+    if (match) {
+      // Convert the import statement into an object
+      let importLine: string = match[0];
+      // Remove this existing dynamic imports from the code
+      newcode = newcode.replace(importLine, "");
+    }
+  } while (match);
+
   // Return the new code and list of lazy imports
   return { newcode, lazyImps };
 }
@@ -251,7 +263,7 @@ function importToObj(imp: RegExpExecArray, filePath: string): imports {
     }
   }
 
-  if (!inNodeModule)
+  if (!inNodeModule && importedAs)
     exportedAs = getDefaultExp(exportPath + fileExtension);
   else
     exportedAs = importedAs;
