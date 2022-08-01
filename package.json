@@ -2,7 +2,8 @@
   "type": "module",
   "scripts": {
     "devtools": "node ../react/packages/react-devtools/bin.js",
-    "puppeteer": "node headless.js"
+    "puppeteer": "node headless.js",
+    "tsc": "tsc"
   },
   "dependencies": {
     "@types/cli-progress": "^3.11.0",
