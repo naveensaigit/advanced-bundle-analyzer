@@ -54,7 +54,7 @@ let dataObject: outputObject = {};
 const readPath: string = path.resolve(process.argv[2]);
 const writePath: string = process.argv[3] || "data.json";
 const rootPath: string = path.resolve();
-const filterSuggestions = /*process.env.FILTER ||*/ false;
+const filterSuggestions = (process.env.FILTER==="true") || false;
 let renderTree: renderTreeType = JSON.parse(fs.readFileSync(readPath).toString());
 
 // Function to get initial object to store file data.

@@ -272,10 +272,10 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
   if (filterSuggestions) {
     //check for return type
 
-    if (jsxReturnTypeFunctions.hasOwnProperty(filePath) === false)
-      jsxReturnTypeFunctions[filePath] = getJsxFunctions(filePath);
+    if (jsxReturnTypeFunctions.hasOwnProperty(exportPath + fileExtension) === false)
+      jsxReturnTypeFunctions[exportPath + fileExtension] = getJsxFunctions(exportPath + fileExtension);
 
-    if (exportedAs && jsxReturnTypeFunctions[filePath].hasOwnProperty(exportedAs) === false)
+    if (exportedAs && jsxReturnTypeFunctions[exportPath + fileExtension].hasOwnProperty(exportedAs) === false)
       return null;
   }
 
