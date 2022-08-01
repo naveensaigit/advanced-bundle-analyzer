@@ -54,6 +54,7 @@ let dataObject: outputObject = {};
 const readPath: string = path.resolve(process.argv[2]);
 const writePath: string = process.argv[3] || "data.json";
 const rootPath: string = path.resolve();
+const filterSuggestions = /*process.env.FILTER ||*/ false;
 let renderTree: renderTreeType = JSON.parse(fs.readFileSync(readPath).toString());
 
 // Function to get initial object to store file data.
@@ -112,7 +113,7 @@ for (let node in renderTree) {
 
     let fileData: fileData = getFileInitData(path.basename(filePath), filePath);
     fileData.size = fs.statSync(filePath).size;     // computing size of current file.
-    let { lazyImps, imports }: returnGetImports = getImports(filePath);
+    let { lazyImps, imports }: returnGetImports = getImports(filePath, filterSuggestions);
 
     for (let imp of imports) {
       if (!imp || !imp.module)

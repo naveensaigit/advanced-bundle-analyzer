@@ -2,13 +2,14 @@
   "type": "module",
   "scripts": {
     "devtools": "node ../react/packages/react-devtools/bin.js",
-    "puppeteer": "node headless.js",
-    "tsc": "tsc"
+    "puppeteer": "node headless.js"
   },
   "dependencies": {
+    "@types/babel__core": "^7.1.19",
     "@types/cli-progress": "^3.11.0",
     "@types/node": "^18.0.6",
     "cli-progress": "^3.11.2",
-    "puppeteer": "^15.4.0"
+    "puppeteer": "^15.4.0",
+    "typescript": "^4.7.4"
   }
 }

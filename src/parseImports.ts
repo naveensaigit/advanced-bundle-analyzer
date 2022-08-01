@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { preprocess, removeComments } from "./utils.js";
+import { getJsxFunctions } from "./jsxFunctions";
 
 type lazyImp = { import: string; lazyImp: string; module: string };
 type getLazy = { newcode: string; lazyImps: lazyImp[] };
@@ -39,18 +40,6 @@ function getLazyImports(code: string): getLazy {
         lazyImp,
         module,
       });
-    }
-  } while (match);
-
-  reg = new RegExp("import(\\s|\r\n)*?\\(", "gm");
-
-  do {
-    match = reg.exec(code);
-    if (match) {
-      // Convert the import statement into an object
-      let importLine: string = match[0];
-      // Remove this existing dynamic imports from the code
-      newcode = newcode.replace(importLine, "");
     }
   } while (match);
 
@@ -125,12 +114,12 @@ function getDefaultImp(stmt: string): string | null {
   return null;
 }
 
-let defaultExportsMemo : {[key: string]: string | null} = {};
+let defaultExportsMemo: { [key: string]: string | null } = {};
 
 // Get name of default export from a file
 function getDefaultExp(filePath: string): string | null {
 
-  if(typeof defaultExportsMemo[filePath] !== "undefined")
+  if (typeof defaultExportsMemo[filePath] !== "undefined")
     return defaultExportsMemo[filePath];
 
   // Read the file contents
@@ -216,8 +205,18 @@ type imports = {
   module: string;
 } | null;
 
+type jsxFunctions = {
+  [key: string]: boolean
+};
+
+type jsxReturningFunctions = {
+  [key: string]: jsxFunctions
+}
+
+let jsxReturnTypeFunctions: jsxReturningFunctions = {};
+
 // Convert import statement to an object
-function importToObj(imp: RegExpExecArray, filePath: string): imports {
+function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: boolean): imports {
   if (!imp) return null;
 
   let module = imp[3].match(/('|")(.*)('|")/gm);
@@ -263,12 +262,22 @@ function importToObj(imp: RegExpExecArray, filePath: string): imports {
     }
   }
 
-  if (!inNodeModule && importedAs)
+  if (!inNodeModule)
     exportedAs = getDefaultExp(exportPath + fileExtension);
   else
     exportedAs = importedAs;
 
   let namespaceImp: string | null = getNamespaceImp(stmt);
+
+  if (filterSuggestions) {
+    //check for return type
+
+    if (jsxReturnTypeFunctions.hasOwnProperty(filePath) === false)
+      jsxReturnTypeFunctions[filePath] = getJsxFunctions(filePath);
+
+    if (exportedAs && jsxReturnTypeFunctions[filePath].hasOwnProperty(exportedAs) === false)
+      return null;
+  }
 
   return {
     import: stmt, // Import statement
@@ -278,7 +287,7 @@ function importToObj(imp: RegExpExecArray, filePath: string): imports {
     },
     namedImps: namedImps, // Named imports present in the import statement
     namespaceImp, // Namespace import present in the import statement
-    module: exportPath+fileExtension, // Name of module from which import is happening
+    module: exportPath + fileExtension, // Name of module from which import is happening
   };
 }
 
@@ -288,7 +297,7 @@ export type returnGetImports = {
 }
 
 // Get an array of import objects for each import statement in the code
-export function getImports(filePath: string): returnGetImports {
+export function getImports(filePath: string, filterSuggestions: boolean): returnGetImports {
   // Read the file contents
   const oldcode: string = fs.readFileSync(filePath, "utf8");
   // Get Lazy loaded imports and remove them from code
@@ -300,7 +309,7 @@ export function getImports(filePath: string): returnGetImports {
   // Remove comments from the code
   code = removeComments(code);
   // Remove single file imports
-  code = removeImports(code); 
+  code = removeImports(code);
 
   // Import statements are of the form "import <imports> from <moduleName>;"
   // eslint-disable-next-line no-control-regex
@@ -311,8 +320,9 @@ export function getImports(filePath: string): returnGetImports {
     match = reg.exec(code);
     if (match) {
       // Convert the import statement into an object
-      let importObj: imports = importToObj(match, filePath);
-      imports.push(importObj);
+      let importObj: imports = importToObj(match, filePath, filterSuggestions);
+
+      if (importObj) imports.push(importObj);
     }
   } while (match);
 
