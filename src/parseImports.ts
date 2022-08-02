@@ -62,6 +62,18 @@ function getLazyImports(code: string): getLazy {
     }
   } while (match);
 
+  reg = new RegExp("import(\\s|\r\n)*?\\(", "gm");
+
+  do {
+    match = reg.exec(code);
+    if (match) {
+      // Convert the import statement into an object
+      let importLine: string = match[0];
+      // Remove this existing dynamic imports from the code
+      newcode = newcode.replace(importLine, "");
+    }
+  } while (match);
+  
   // Return the new code and list of lazy imports
   return { newcode, lazyImps };
 }
@@ -216,7 +228,7 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
 
   let importedAs: string | null = getDefaultImp(stmt);
   let exportPath = path.resolve(path.dirname(filePath), moduleStr);
-  let exportedAs: string | null;
+  let exportedAs: string | null = null;
 
   // checking export path does not lie in node_modules
   let extensions: string[] = ['', '.js', '.jsx', '.ts', '.tsx'];
@@ -249,7 +261,8 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
 
   if (inNodeModule)
     return null;
-  exportedAs = getDefaultExp(exportPath + fileExtension);
+  if(importedAs)
+    exportedAs = getDefaultExp(exportPath + fileExtension);
 
   let namespaceImp: string | null = null;
 
