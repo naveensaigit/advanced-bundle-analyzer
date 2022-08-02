@@ -6,7 +6,10 @@ import { getImports, jsxReturningFunctions, defaultExpMemo } from "./parseImport
 import { returnGetImports } from './parseImports';
 import cliProgress from 'cli-progress';
 
+// Path of this file
 const __filename = fileURLToPath(import.meta.url);
+// Path of the directory containing this file
+// __dirname isn't defined for modules
 const __dirname = path.dirname(__filename);
 
 type sourceObject = {
@@ -53,7 +56,9 @@ let jsxReturnTypeFunctions: jsxReturningFunctions = {};
 
 let defaultExportsMemo: defaultExpMemo = {};
 
-// These are the files which we are considering empty extension is used to match for the files whose extension is already given in the import statement path.
+// These are the files which we are considering empty
+// extension is used to match for the files whose 
+// extension is already given in the import statement path.
 let extensions: string[] = ['', '.js', '.jsx', '.ts', '.tsx'];
 
 let dataObject: outputObject = {};
@@ -103,11 +108,15 @@ for (let node in renderTree) {
   if (renderTree[node].hasOwnProperty('source') === false)
     continue;
 
+  // Export name and filepath is a unique combination for
+  // all components analyzed as part of the render tree
   let identifier_key: string = renderTree[node].name + ":" + renderTree[node].source.fileName;
 
+  // If same component has already been processed
   if (visited[identifier_key])
     continue;
 
+  // Mark component as processed in memo
   visited[identifier_key] = true;
 
   let filePath: string = renderTree[node].source.fileName;
@@ -123,6 +132,7 @@ for (let node in renderTree) {
     fileData.size = fs.statSync(filePath).size;     // computing size of current file.
     let { lazyImps, imports, ...memos }: returnGetImports = getImports(filePath, filterSuggestions, defaultExportsMemo, jsxReturnTypeFunctions);
 
+    // Update the memos for the next run
     defaultExportsMemo = memos.defaultExportsMemo;
     jsxReturnTypeFunctions = memos.jsxReturnTypeFunctions;
 

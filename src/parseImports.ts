@@ -4,7 +4,10 @@ import { fileURLToPath } from 'url';
 import { preprocess, removeComments } from "./utils.js";
 import { getJsxFunctions } from "./jsxFunctions.js";
 
+// Path of this file
 const __filename = fileURLToPath(import.meta.url);
+// Path of the directory containing this file
+// __dirname isn't defined for modules
 const __dirname = path.dirname(__filename);
 
 type lazyImp = { import: string; lazyImp: string; module: string };
@@ -62,6 +65,7 @@ function getLazyImports(code: string): getLazy {
     }
   } while (match);
 
+  // Regex to remove anonymous dynamic imports
   reg = new RegExp("import(\\s|\r\n)*?\\(", "gm");
 
   do {
@@ -73,7 +77,7 @@ function getLazyImports(code: string): getLazy {
       newcode = newcode.replace(importLine, "");
     }
   } while (match);
-  
+
   // Return the new code and list of lazy imports
   return { newcode, lazyImps };
 }
@@ -149,7 +153,7 @@ function getDefaultImp(stmt: string): string | null {
 
 // Get name of default export from a file
 function getDefaultExp(filePath: string): string | null {
-
+  // If default export is already stored in memo, return it
   if (typeof defaultExportsMemo[filePath] !== "undefined")
     return defaultExportsMemo[filePath];
 
@@ -168,6 +172,7 @@ function getDefaultExp(filePath: string): string | null {
 
   match = expDefFunc.exec(code);
   if (match && match[7])
+    // Store default export in memo and return it
     return defaultExportsMemo[filePath] = preprocess(match[7]);
 
   // Match "export default expression"
@@ -178,6 +183,7 @@ function getDefaultExp(filePath: string): string | null {
 
   match = expDef.exec(code);
   if (match && match[7])
+    // Store default export in memo and return it
     return defaultExportsMemo[filePath] = preprocess(match[7]);
 
   // Match "export { name as default }"
@@ -188,14 +194,18 @@ function getDefaultExp(filePath: string): string | null {
 
   match = nameDef.exec(code);
   if (!(match && match[3]))
+    // Store default export in memo and return it
     return defaultExportsMemo[filePath] = "";
+
   const namedExps: string[] = preprocess(match[3]).split(",");
   for (let namedExp of namedExps) {
     const [name, exportedAs] = namedExp.split("as");
     if (exportedAs.trim() === "default")
+      // Store default export in memo and return it
       return defaultExportsMemo[filePath] = name.trim();
   }
 
+  // No default exports present in this file
   return defaultExportsMemo[filePath] = null;
 }
 
@@ -216,16 +226,20 @@ type imports = {
 function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: boolean): imports {
   if (!imp) return null;
 
+  // Get path present in the import statement 
   let module = imp[3].match(/('|")(.*)('|")/gm);
   let moduleStr: string | undefined = module?.[0];
 
   if (!moduleStr) return null;
+  // Remove the quotes from the import path
   moduleStr = moduleStr.slice(1, -1);
 
   let stmt: string = imp[0];
 
+  // Get all named imports present in the import statement
   let namedImps: stringToNamedImp[] | null = getNamedImps(stmt);
 
+  // Get default imports present in the import statement
   let importedAs: string | null = getDefaultImp(stmt);
   let exportPath = path.resolve(path.dirname(filePath), moduleStr);
   let exportedAs: string | null = null;
@@ -236,16 +250,21 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
   let fileExtension: string = '';
 
   for (let ext of extensions) {
+    // If path exists and is a file
     if (fs.existsSync(exportPath + ext) && fs.lstatSync(exportPath + ext).isFile()) {
+      // File is present in source code directory
       inNodeModule = false;
+      // Save the extension of the file
       fileExtension = ext;
       break;
     }
   }
 
   if (inNodeModule) {
+    // Handle the case of importing from "index" files
     let newExportPath = exportPath + "/index";
 
+    // Re-try the same process as above
     for (let ext of extensions) {
       if (fs.existsSync(newExportPath + ext) && fs.lstatSync(newExportPath + ext).isFile()) {
         inNodeModule = false;
@@ -254,16 +273,23 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
       }
     }
 
+    // Not from node_modules
     if (!inNodeModule) {
+      // Save the export path
       exportPath = newExportPath;
     }
   }
 
+  // Exclude imports from node_modules
   if (inNodeModule)
     return null;
+  
+  // If there is a default import
   if(importedAs)
+    // Find the name it is exported as from the export file
     exportedAs = getDefaultExp(exportPath + fileExtension);
 
+  // Ignore any namespace import
   let namespaceImp: string | null = null;
 
   let returnObj: imports = {
@@ -277,38 +303,56 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
     module: exportPath + fileExtension, // Name of module from which import is happening
   };
 
+  // If there is no default import
   if(importedAs === null)
+    // Set it as null
     returnObj.defaultImp = null;
 
+  // Filtering suggestions based on return type of function
   if (filterSuggestions) {
-    //check for return type
 
+    // If file is not in memo
     if (jsxReturnTypeFunctions.hasOwnProperty(exportPath + fileExtension) === false) {
       let readPath = exportPath + fileExtension;
+      // If it is a JS or JSX file
       if(fileExtension !== ".ts" && fileExtension !== ".tsx") {
+        // Create a temporary copy of the file with .tsx as
+        // TS Compiler API supports only files with .ts/.tsx
         readPath = path.resolve(__dirname, "temp.tsx");
+        // Copy file to temporary location
         fs.copyFileSync(exportPath + fileExtension, readPath);
       }
+      // Compute the list of all JSX returning functions
+      // present in file and store it in the memo
       jsxReturnTypeFunctions[exportPath + fileExtension] = getJsxFunctions(readPath);
     }
 
+    // Get all JSX returning functions in file from memo
     let jsxFuncsInImp = jsxReturnTypeFunctions[exportPath + fileExtension];
 
+    // If default import is not a JSX returning function
     if (exportedAs && jsxFuncsInImp.hasOwnProperty(exportedAs) === false)
+      // Remove it from the import object
       returnObj.defaultImp = null;
-    
+
+    // Filtered list of JSX returning named imports
     let newNamedImps: stringToNamedImp[] = [];
 
+    // Loop over all the named imports
     for (let namedImp of namedImps || []) {
+      // If named import is not a JSX returning function
       if (namedImp.namedImp && jsxFuncsInImp.hasOwnProperty(namedImp.namedImp) === false)
         continue;
-
+      // Add JSX returning named import to new list
       newNamedImps.push(namedImp);
     }
 
+    // Set the named imports to the filtered named imports
     returnObj.namedImps = newNamedImps;
 
+    // If there are no JSX returning filtered name imports and default import
     if(newNamedImps.length === 0 && returnObj.defaultImp === null)
+      // Ignore this import statement too
       return null;
   }
 
@@ -329,15 +373,17 @@ export function getImports(
   defaultExportsMemoLocal: defaultExpMemo,
   jsxReturnTypeFunctionsLocal: jsxReturningFunctions
 ): returnGetImports {
+  // Set the global memos with the memos from Data Generator
+  // This is done to persist the memos between calls
   defaultExportsMemo = defaultExportsMemoLocal;
   jsxReturnTypeFunctions = jsxReturnTypeFunctionsLocal;
+
   // Read the file contents
   const oldcode: string = fs.readFileSync(filePath, "utf8");
   // Get Lazy loaded imports and remove them from code
   let { newcode: code, lazyImps }: getLazy = getLazyImports(oldcode);
   // Declaring variables to store ordinary imports and regex matches
-  let imports: imports[] = [],
-    match: RegEx;
+  let imports: imports[] = [], match: RegEx;
 
   // Remove comments from the code
   code = removeComments(code);
@@ -359,5 +405,6 @@ export function getImports(
     }
   } while (match);
 
+  // Return the imports and updated memos as well
   return { imports, lazyImps, defaultExportsMemo, jsxReturnTypeFunctions };
 }
