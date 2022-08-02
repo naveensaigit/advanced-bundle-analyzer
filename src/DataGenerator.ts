@@ -1,9 +1,13 @@
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from 'url';
 import { execSync } from "child_process";
-import { getImports } from "./parseImports.js";
+import { getImports, jsxReturningFunctions, defaultExpMemo } from "./parseImports.js";
 import { returnGetImports } from './parseImports';
 import cliProgress from 'cli-progress';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 type sourceObject = {
   fileName: string,
@@ -45,6 +49,10 @@ type outputObject = {
   [key: string]: fileData
 }
 
+let jsxReturnTypeFunctions: jsxReturningFunctions = {};
+
+let defaultExportsMemo: defaultExpMemo = {};
+
 // These are the files which we are considering empty extension is used to match for the files whose extension is already given in the import statement path.
 let extensions: string[] = ['', '.js', '.jsx', '.ts', '.tsx'];
 
@@ -54,7 +62,7 @@ let dataObject: outputObject = {};
 const readPath: string = path.resolve(process.argv[2]);
 const writePath: string = process.argv[3] || "data.json";
 const rootPath: string = path.resolve();
-const filterSuggestions = (process.env.FILTER==="true") || false;
+const filterSuggestions = (process.env.FILTER === "true") || false;
 let renderTree: renderTreeType = JSON.parse(fs.readFileSync(readPath).toString());
 
 // Function to get initial object to store file data.
@@ -113,7 +121,10 @@ for (let node in renderTree) {
 
     let fileData: fileData = getFileInitData(path.basename(filePath), filePath);
     fileData.size = fs.statSync(filePath).size;     // computing size of current file.
-    let { lazyImps, imports }: returnGetImports = getImports(filePath, filterSuggestions);
+    let { lazyImps, imports, ...memos }: returnGetImports = getImports(filePath, filterSuggestions, defaultExportsMemo, jsxReturnTypeFunctions);
+
+    defaultExportsMemo = memos.defaultExportsMemo;
+    jsxReturnTypeFunctions = memos.jsxReturnTypeFunctions;
 
     for (let imp of imports) {
       if (!imp || !imp.module)
@@ -121,17 +132,6 @@ for (let node in renderTree) {
 
       // Absolute path of file from which the current imported component is exported.
       let importModulePath: string = path.resolve(path.dirname(filePath), imp.module);
-
-      for (let extension of extensions) {
-        if (fs.existsSync(importModulePath + extension)) {
-          // Adding the file extensions & checking if the current file is actually present in the path received from import statement.
-          importModulePath += extension;
-          break;
-        }
-      }
-
-      if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules.
-        continue;
 
       importModulePath = importModulePath.replaceAll('\\', '/');
 
@@ -146,29 +146,10 @@ for (let node in renderTree) {
         };
       }
 
-      // If the component is being imported as namespace import.
-      if (imp.namespaceImp) {
-        fileData.canBeLazyLoaded[imp.namespaceImp] =
-        {
-          path: importModulePath,
-          exportName: imp.namespaceImp
-        }
-      }
-
       // Getting components from named import
       for (let namedImp of imp.namedImps || []) {
-        if (namedImp.alias !== undefined && namedImp.namedImp !== null) {
-          fileData.canBeLazyLoaded[namedImp.namedImp] =
-          {
-            path: importModulePath,
-            exportName: namedImp.alias
-          }
-        }
-
-        // Getting components from named import.
-        if (namedImp.alias === undefined && namedImp.namedImp !== undefined) {
-          fileData.canBeLazyLoaded[namedImp.namedImp] =
-          {
+        if (namedImp.namedImp) {
+          fileData.canBeLazyLoaded[namedImp.namedImp] = {
             path: importModulePath,
             exportName: namedImp.namedImp
           }
@@ -292,6 +273,9 @@ for (let node in renderTree) {
     }
   }
 }
+
+if(fs.existsSync(path.resolve(__dirname, "temp.tsx")))
+    fs.unlinkSync(path.resolve(__dirname, "temp.tsx"));
 
 // stop the progress bar
 bar1.stop();
@@ -494,7 +478,7 @@ function walk(dir: string): completeFolderData {
 
   current++;
   bar2percent = (bar2percent > ((current*100) / total))? bar2percent : ((current*100) / total);
-  
+
   // update the current value in bar.
   bar2.update(++bar2percent);
 

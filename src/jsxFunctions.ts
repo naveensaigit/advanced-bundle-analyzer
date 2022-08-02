@@ -61,10 +61,7 @@ const filterJsxFunctionsFromNode = (
     const type = signature.getReturnType();
     // @ts-ignore
     const element = type.symbol?.escapedName, jsx = type.symbol?.parent?.escapedName;
-    const props = type.getProperties();
-    // @ts-ignore
-    const reactElement = props[0]?.parent?.escapedName;
-    if (element === "Element" && jsx === "JSX" && reactElement === "ReactElement") {
+    if (element === "Element" && jsx === "JSX") {
       const name = (
         parentSym?.getEscapedName()?.toString() ||
         parentSym?.getName()?.toString() ||

@@ -1,11 +1,30 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from 'url';
 import { preprocess, removeComments } from "./utils.js";
-import { getJsxFunctions } from "./jsxFunctions";
+import { getJsxFunctions } from "./jsxFunctions.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 type lazyImp = { import: string; lazyImp: string; module: string };
 type getLazy = { newcode: string; lazyImps: lazyImp[] };
 type RegEx = RegExpExecArray | null;
+
+type jsxFunctions = {
+  [key: string]: boolean
+};
+
+export type jsxReturningFunctions = {
+  [key: string]: jsxFunctions
+}
+
+export type defaultExpMemo = {
+  [key: string]: string | null
+}
+
+let defaultExportsMemo: defaultExpMemo = {};
+let jsxReturnTypeFunctions: jsxReturningFunctions = {};
 
 // Function to get lazy imports and then remove them from code
 function getLazyImports(code: string): getLazy {
@@ -107,14 +126,14 @@ function getDefaultImp(stmt: string): string | null {
     // from regex which contains the default import
 
     // Remove trailing whitespaces and newlines
+    if(defaultImp[1] === "," && defaultImp[7] === ",")
+      return null;
     let defaultImpStr: string = preprocess(defaultImp[4]);
     return defaultImpStr;
   }
 
   return null;
 }
-
-let defaultExportsMemo: { [key: string]: string | null } = {};
 
 // Get name of default export from a file
 function getDefaultExp(filePath: string): string | null {
@@ -168,30 +187,6 @@ function getDefaultExp(filePath: string): string | null {
   return defaultExportsMemo[filePath] = null;
 }
 
-// Get namespace import from an import statement
-function getNamespaceImp(stmt: string): string | null {
-  // Namespace import contains "* as". It can
-  // be succeeded by either a "," or "from"
-  let namespaceImpRegEx: RegExp = new RegExp(
-    // eslint-disable-next-line no-control-regex
-    "\\*((.|\r\n|\\s)*?)?as((.|\r\n|\\s)*?)?((.|\r\n|\\s)*?)(,|from)",
-    "gm"
-  );
-
-  let namespaceImp: RegEx = namespaceImpRegEx.exec(stmt);
-
-  if (namespaceImp) {
-    // Taking the fifth element to get the fifth group
-    // from regex which contains the namespace import
-
-    // Remove trailing whitespaces and newlines
-    let namespaceImpStr: string = preprocess(namespaceImp[5].toString());
-    return namespaceImpStr;
-  }
-
-  return null;
-}
-
 type defaultImport = {
   importedAs: string | null,
   exportedAs: string | null
@@ -204,16 +199,6 @@ type imports = {
   namespaceImp: string | null;
   module: string;
 } | null;
-
-type jsxFunctions = {
-  [key: string]: boolean
-};
-
-type jsxReturningFunctions = {
-  [key: string]: jsxFunctions
-}
-
-let jsxReturnTypeFunctions: jsxReturningFunctions = {};
 
 // Convert import statement to an object
 function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: boolean): imports {
@@ -262,24 +247,13 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
     }
   }
 
-  if (!inNodeModule)
-    exportedAs = getDefaultExp(exportPath + fileExtension);
-  else
-    exportedAs = importedAs;
+  if (inNodeModule)
+    return null;
+  exportedAs = getDefaultExp(exportPath + fileExtension);
 
-  let namespaceImp: string | null = getNamespaceImp(stmt);
+  let namespaceImp: string | null = null;
 
-  if (filterSuggestions) {
-    //check for return type
-
-    if (jsxReturnTypeFunctions.hasOwnProperty(exportPath + fileExtension) === false)
-      jsxReturnTypeFunctions[exportPath + fileExtension] = getJsxFunctions(exportPath + fileExtension);
-
-    if (exportedAs && jsxReturnTypeFunctions[exportPath + fileExtension].hasOwnProperty(exportedAs) === false)
-      return null;
-  }
-
-  return {
+  let returnObj: imports = {
     import: stmt, // Import statement
     defaultImp: {
       importedAs, // Default import present in the import statement
@@ -289,15 +263,61 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
     namespaceImp, // Namespace import present in the import statement
     module: exportPath + fileExtension, // Name of module from which import is happening
   };
+
+  if(importedAs === null)
+    returnObj.defaultImp = null;
+
+  if (filterSuggestions) {
+    //check for return type
+
+    if (jsxReturnTypeFunctions.hasOwnProperty(exportPath + fileExtension) === false) {
+      let readPath = exportPath + fileExtension;
+      if(fileExtension !== ".ts" && fileExtension !== ".tsx") {
+        readPath = path.resolve(__dirname, "temp.tsx");
+        fs.copyFileSync(exportPath + fileExtension, readPath);
+      }
+      jsxReturnTypeFunctions[exportPath + fileExtension] = getJsxFunctions(readPath);
+    }
+
+    let jsxFuncsInImp = jsxReturnTypeFunctions[exportPath + fileExtension];
+
+    if (exportedAs && jsxFuncsInImp.hasOwnProperty(exportedAs) === false)
+      returnObj.defaultImp = null;
+    
+    let newNamedImps: stringToNamedImp[] = [];
+
+    for (let namedImp of namedImps || []) {
+      if (namedImp.namedImp && jsxFuncsInImp.hasOwnProperty(namedImp.namedImp) === false)
+        continue;
+
+      newNamedImps.push(namedImp);
+    }
+
+    returnObj.namedImps = newNamedImps;
+
+    if(newNamedImps.length === 0 && returnObj.defaultImp === null)
+      return null;
+  }
+
+  return returnObj;
 }
 
 export type returnGetImports = {
   imports: imports[];
   lazyImps: lazyImp[];
+  defaultExportsMemo: defaultExpMemo;
+  jsxReturnTypeFunctions: jsxReturningFunctions;
 }
 
 // Get an array of import objects for each import statement in the code
-export function getImports(filePath: string, filterSuggestions: boolean): returnGetImports {
+export function getImports(
+  filePath: string,
+  filterSuggestions: boolean,
+  defaultExportsMemoLocal: defaultExpMemo,
+  jsxReturnTypeFunctionsLocal: jsxReturningFunctions
+): returnGetImports {
+  defaultExportsMemo = defaultExportsMemoLocal;
+  jsxReturnTypeFunctions = jsxReturnTypeFunctionsLocal;
   // Read the file contents
   const oldcode: string = fs.readFileSync(filePath, "utf8");
   // Get Lazy loaded imports and remove them from code
@@ -326,5 +346,5 @@ export function getImports(filePath: string, filterSuggestions: boolean): return
     }
   } while (match);
 
-  return { imports, lazyImps };
+  return { imports, lazyImps, defaultExportsMemo, jsxReturnTypeFunctions };
 }
