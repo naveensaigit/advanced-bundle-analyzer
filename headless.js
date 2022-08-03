@@ -48,6 +48,7 @@ const openReactApp = async () => {
 
   // Add a keystroke listener for user interaction
   await page.evaluateOnNewDocument(extractKey => {
+    // eslint-disable-next-line no-undef
     enterPressed = false;
     document.addEventListener("keydown", function extractTree(e) {
       // If key pressed matches extract key
@@ -55,6 +56,7 @@ const openReactApp = async () => {
         // Remove the listener
         document.removeEventListener("keydown", extractTree);
         // Set value as true
+        // eslint-disable-next-line no-undef
         enterPressed = true;
         console.log("[browser] enter pressed!");
       }

@@ -141,7 +141,7 @@ function getDefaultImp(stmt: string): string | null {
     // Taking the fourth element to get the fourth group
     // from regex which contains the default import
 
-    // Remove trailing whitespaces and newlines
+    // Remove trailing whitespace's and newlines
     if(defaultImp[1] === "," && defaultImp[7] === ",")
       return null;
     let defaultImpStr: string = preprocess(defaultImp[4]);
@@ -358,6 +358,8 @@ function importToObj(imp: RegExpExecArray, filePath: string, filterSuggestions: 
 
   return returnObj;
 }
+
+// Memo's need to be returned to update the original memo's in DataGenerator.ts
 
 export type returnGetImports = {
   imports: imports[];

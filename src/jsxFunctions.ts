@@ -58,8 +58,9 @@ const getFunctionNodes = (node: ts.Node): FunctionNode[] => {
   );
 }
 
+// type used to store & return jsx returning functions.
 type jsxFunctions = {
-  [key: string]: boolean
+  [key: string]: boolean    // Key is a functions name.
 };
 
 // Get all function nodes that return JSX
@@ -119,10 +120,11 @@ const filterJsxFunctionsFromNodes = (
 // Get names of all JSX returning functions present in a file
 export const getJsxFunctions = (fileName: string): jsxFunctions => {
   // Start the TS Compiler to generate AST of given file
+  // AST : Abstract Syntax Tree
   const { selectedFile, typeChecker } = startNewExecution(fileName);
   // Get all function nodes present in this AST
   const allFunctions = getFunctionNodes(selectedFile);
 
-  // Filter out all JSX returning function nodes from these nodes
+  // Filter out all JSX returning function nodes from all the nodes present in the AST.
   return filterJsxFunctionsFromNodes(allFunctions, typeChecker);
 }

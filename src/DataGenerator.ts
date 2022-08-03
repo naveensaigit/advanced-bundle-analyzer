@@ -24,17 +24,21 @@ type componentInfo = {
   source: sourceObject
 };
 
+// Type of render tree
 type renderTreeType = {
   [key: string]: componentInfo
 };
 
+// Each key in canBeLazy has two properties :
+// path -> path from which the component is exported.
+// exportName -> name of component where its is defined.
 type importStatements = {
   path: string,
   exportName: string | null
 }
 
 type canBeLazy = {
-  [key: string]: importStatements     // Here key is the importName used for importing a component in a file.
+  [key: string]: importStatements     //  key is the importName used for importing a component in a file.
 }
 
 // Information stored for a file.
@@ -52,21 +56,26 @@ type outputObject = {
   [key: string]: fileData
 }
 
+// A memo for jsx returning functions for a filepath.
 let jsxReturnTypeFunctions: jsxReturningFunctions = {};
 
+// A memo for default exports for a filepath.
 let defaultExportsMemo: defaultExpMemo = {};
 
-// These are the files which we are considering empty
-// extension is used to match for the files whose 
+// These are the file types which are being considered
+// empty extension is used to match for the files whose 
 // extension is already given in the import statement path.
 let extensions: string[] = ['', '.js', '.jsx', '.ts', '.tsx'];
 
+// Object that will hold the information about files only that are shown on UI
 let dataObject: outputObject = {};
 
 // Path of root folder
 const readPath: string = path.resolve(process.argv[2]);
 const writePath: string = process.argv[3] || "data.json";
 const rootPath: string = path.resolve();
+
+// Flag for filtering unwanted suggestions
 const filterSuggestions = (process.env.FILTER === "true") || false;
 let renderTree: renderTreeType = JSON.parse(fs.readFileSync(readPath).toString());
 
@@ -85,27 +94,30 @@ function getFileInitData(name: string, entryPath: string): fileData {
   }
 }
 
+// Type of components whose lazy loading suggestion should not be shown on UI. 
 type dontLazyLoad = {
   path: string,
   exportName: string | null
 }
 
-let notToBeLazyLoaded: { [key: string]: dontLazyLoad } = {};
+let notToBeLazyLoaded: { [key: string]: dontLazyLoad } = {};    // Key is a unique combination of path & exportName.
 
-let visited: { [key: string]: boolean } = {};
+// visited object is maintained to mark the nodes of render tree as visited. 
+let visited: { [key: string]: boolean } = {};     // Key is a unique combination of name of component & the path of source file in which it is rendered
 
 // create a new progress bar instance and use shades_classic theme
 console.log("Processing Render Tree :");
+// bar1 shows the progress while iterating over nodes of render tree.
 const bar1 = new cliProgress.SingleBar({format:'{bar} {percentage}% | ETA: {eta}s | {value}/{total}'}, cliProgress.Presets.shades_classic);
 
-// start the progress bar with a total value equal to number of keys in render Tree  and start value of 0
+// start the progress bar with a total value equal to number of keys in render Tree  and start value of 0.
 bar1.start(Object.keys(renderTree).length, 0);
 let currentPosition = 0;
 
 for (let node in renderTree) {
   // update the current value in bar.
   bar1.update(++currentPosition);
-  if (renderTree[node].hasOwnProperty('source') === false)
+  if (renderTree[node].hasOwnProperty('source') === false)    // Current node in render tree is skipped, if does not contain source field.
     continue;
 
   // Export name and filepath is a unique combination for
@@ -173,6 +185,7 @@ for (let node in renderTree) {
 
         let importModulePath: string = path.resolve(path.dirname(filePath), lazyImp.module);
 
+        // Finding the extension for importModulePath file.
         for (let extension of extensions) {
           if (fs.existsSync(importModulePath + extension)) {
             importModulePath += extension;
@@ -182,10 +195,7 @@ for (let node in renderTree) {
 
         if (!fs.existsSync(importModulePath))   // If the file is not present in the path mentioned in the import statement, it is imported from node modules.
           continue;
-
-        //importModulePath = importModulePath.replaceAll('\\', '/');
-
-        //fileData.alreadyLazyLoaded.push(importModulePath + ':' + lazyImp.lazyImp);
+          
         fileData.alreadyLazyLoaded++;
       }
     }
@@ -197,7 +207,7 @@ for (let node in renderTree) {
   let code: string = fs.readFileSync(filePath, "utf8");
 
   const lineNumber: number = renderTree[node].source.lineNumber;
-  let ColumnNumber: number = 1;
+  let ColumnNumber: number = 1; // Default column number is considered to be start of line. Used when column number is not defined for a render tree node.
 
   let numberOfCharacters: number = 0;   // For finding number of characters present in file before the render statement.
   let line: number = 1, col: number = 1;
@@ -239,14 +249,13 @@ for (let node in renderTree) {
         found = true;
 
         //If the current child component is rendered we remove it from can be lazy loaded for the current file (in which the parent component resides).
-        //let index: number = dataObject[filePath].canBeLazyLoaded.indexOf(imp);
         dataObject[filePath].canNotBeLazyLoaded++;
-        //dataObject[filePath].canBeLazyLoaded.splice(index, index + 1);
-
+        
         delete dataObject[filePath].canBeLazyLoaded[imp];
 
         let key: string = importDetails.path + ':' + importDetails.exportName;
 
+        // Add information about this component in notToBeLazyLoaded object if not done already.
         if (notToBeLazyLoaded.hasOwnProperty(key))
           continue;
 
@@ -284,6 +293,7 @@ for (let node in renderTree) {
   }
 }
 
+// Delete the temporary tsx file used to get the jsx returning functions for a file. 
 if(fs.existsSync(path.resolve(__dirname, "temp.tsx")))
     fs.unlinkSync(path.resolve(__dirname, "temp.tsx"));
 
@@ -291,7 +301,9 @@ if(fs.existsSync(path.resolve(__dirname, "temp.tsx")))
 bar1.stop();
 console.log();
 
-/*--------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*END OF ANALYZING RENDER TREE*/
+
+/*BEGINNING OF GENERATION OF DATA*/
 
 // Now we have the dataObject & Using this we need to form Data.json file.
 
@@ -403,6 +415,8 @@ function addFile(filePath: string): completeFileData {
   let fileData: completeFileData = getFileData(path.basename(filePath), filePath);
   let key: string = filePath.replaceAll("\\", "/");
 
+  // All the file details needed are already present in the dataObject
+
   fileData.size = dataObject[key].size;
   fileData.canBeLazyLoaded = dataObject[key].canBeLazyLoaded;
   fileData.canNotBeLazyLoaded = dataObject[key].canNotBeLazyLoaded;
@@ -413,6 +427,7 @@ function addFile(filePath: string): completeFileData {
 
 // create a new progress bar instance and use shades_classic theme
 console.log("Processing data :");
+// bar2 is used to show the progress of data generation process
 const bar2 = new cliProgress.SingleBar({format:'{bar} {percentage}% | ETA: {eta}s'}, cliProgress.Presets.shades_classic);
 let total: number = 1;            // Total number of paths that need to be visited.
 let current: number = 0;          // Current number of paths that are visited.
@@ -445,6 +460,7 @@ function walk(dir: string): completeFolderData {
       // Recursively traverse this folder
       const recData: completeFolderData = walk(entryPath);
 
+      // If there are to files to suggestions for in the current directory.
       if (recData.noOfSubFiles === 0) return;
 
       // Add the properties of subfolders to current folder's data
@@ -462,6 +478,7 @@ function walk(dir: string): completeFolderData {
 
       let key: string = entryPath.replaceAll("\\", "/");
 
+      // If a file is absent from dataObject, currently no suggestions exist for that file.
       if (dataObject.hasOwnProperty(key) === false) return;
 
       total++;
@@ -471,7 +488,7 @@ function walk(dir: string): completeFolderData {
       completeDataObject[relPath(entryPath)] = recData;
       current++;
 
-      // Add the properties of subfolders to current folder's data
+      // Add the properties of the current file to its parent's folder data
       dirData.size += recData.size;
       dirData.noOfSubFiles++;
       dirData.alreadyLazyLoaded += recData.alreadyLazyLoaded;
@@ -510,11 +527,12 @@ if (completeDataObject.hasOwnProperty("/") === false) {
 // Link root folder to itself
 completeDataObject["/"].parentFolder = "/";
 
-// Modify the completeDataObject
+// Modify the completeDataObject to transform it to form that is accepted by UI.
 
 let modifiedCompleteDataObject: data = {};
 
 for (let path in completeDataObject) {
+  // Add root folders name to each path in data.
   let newPath = path;
   if (path[0] === "/") newPath = "/" + completeDataObject["/"].name + path;
   if (path === "/") newPath = "/" + completeDataObject["/"].name;
@@ -523,11 +541,13 @@ for (let path in completeDataObject) {
 
   if (path === newPath) continue;
 
+  // Update all the parent folder paths in data.
   if (modifiedCompleteDataObject[newPath].parentFolder === "/" && path !== "/")
     modifiedCompleteDataObject[newPath].parentFolder = "/" + completeDataObject["/"].name;
   else if (modifiedCompleteDataObject[newPath].parentFolder[0] === "/" && path !== "/")
     modifiedCompleteDataObject[newPath].parentFolder = "/" + completeDataObject["/"].name + modifiedCompleteDataObject[newPath].parentFolder;
 
+  // Update all the folders inside paths in data.
   if (typeof modifiedCompleteDataObject[newPath].foldersInside === "object") {
     for (let index = 0; index < modifiedCompleteDataObject[newPath].foldersInside.length; index++) {
       if (modifiedCompleteDataObject[newPath].foldersInside[index][0] === "/") {
@@ -536,6 +556,7 @@ for (let path in completeDataObject) {
     }
   }
 
+  // Update all the files inside paths in data.
   if (typeof modifiedCompleteDataObject[newPath].filesInside === "object") {
     for (let index = 0; index < modifiedCompleteDataObject[newPath].filesInside.length; index++) {
       if (modifiedCompleteDataObject[newPath].filesInside[index][0] === "/") {
@@ -545,7 +566,10 @@ for (let path in completeDataObject) {
   }
 }
 
+// Get data for root directory.
 modifiedCompleteDataObject["/"] = getFolderData(path.basename(rootPath), rootPath);
+
+// Link root folder to itself
 modifiedCompleteDataObject["/"].parentFolder = "/";
 modifiedCompleteDataObject["/"].foldersInside.push("/" + completeDataObject["/"].name);
 modifiedCompleteDataObject["/"].name = ":rootDirectory";
